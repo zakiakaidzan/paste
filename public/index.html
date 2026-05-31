@@ -143,12 +143,12 @@
         }
 
         // Utility: Loading State
-        function setLoading(element, isLoading, originalText = '') {
+        function setLoading(element, isLoading, originalText = '', loadingText = 'Saving...') {
             if (isLoading) {
                 element.disabled = true;
                 element.innerHTML = `
-                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-dark" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    Saving...
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-dark inline-block" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    ${loadingText}
                 `;
                 element.classList.add('opacity-70', 'cursor-not-allowed');
             } else {
@@ -159,14 +159,151 @@
         }
 
         // ==========================================
+        // FITUR PASSWORD & UNLOCK
+        // ==========================================
+        function togglePasswordVisibility(inputId, buttonId) {
+            const input = document.getElementById(inputId);
+            const btn = document.getElementById(buttonId);
+            if (!input || !btn) return;
+
+            const iconEye = btn.querySelector('.eye-icon');
+            const iconEyeSlash = btn.querySelector('.eye-slash-icon');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                iconEye?.classList.add('hidden');
+                iconEyeSlash?.classList.remove('hidden');
+            } else {
+                input.type = 'password';
+                iconEye?.classList.remove('hidden');
+                iconEyeSlash?.classList.add('hidden');
+            }
+        }
+
+        function togglePrivatePasswordField() {
+            const visibilityEl = document.getElementById('paste-visibility');
+            const passwordContainer = document.getElementById('password-container');
+            const passwordInput = document.getElementById('paste-password');
+
+            if (!visibilityEl || !passwordContainer || !passwordInput) return;
+
+            if (visibilityEl.value === 'private') {
+                passwordContainer.classList.remove('hidden');
+                passwordContainer.classList.add('block');
+                setTimeout(() => passwordInput.focus(), 100);
+            } else {
+                passwordContainer.classList.add('hidden');
+                passwordContainer.classList.remove('block');
+                passwordInput.value = ''; 
+                
+                passwordInput.type = 'password';
+                const toggleBtn = document.getElementById('btn-toggle-password');
+                const iconEye = toggleBtn?.querySelector('.eye-icon');
+                const iconEyeSlash = toggleBtn?.querySelector('.eye-slash-icon');
+                iconEye?.classList.remove('hidden');
+                iconEyeSlash?.classList.add('hidden');
+            }
+        }
+
+        function renderPrivateUnlock(pasteMeta, slug) {
+            const mainEl = document.querySelector('main');
+            const title = escapeHtml(pasteMeta.title || 'Paste Private');
+            
+            mainEl.innerHTML = `
+                <div class="flex-1 flex flex-col items-center justify-center text-center p-4 mt-10 w-full">
+                    <div class="w-20 h-20 bg-panel border border-line rounded-full flex items-center justify-center mb-6 text-muted">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">Paste Private</h1>
+                    <p class="text-neon text-sm font-medium mb-2">${title}</p>
+                    <p class="text-muted text-sm mb-8">Masukkan password untuk membuka paste ini.</p>
+                    
+                    <div class="w-full max-w-sm mb-8 space-y-4">
+                        <div class="relative">
+                            <input type="password" id="unlock-password" placeholder="Password paste..." class="w-full bg-panel border border-line focus:border-neon focus:ring-1 focus:ring-neon rounded-lg px-4 py-3.5 text-sm text-white outline-none transition-all pr-12">
+                            <button type="button" id="btn-toggle-unlock" class="absolute inset-y-0 right-0 flex items-center px-4 text-muted hover:text-white transition-colors" onclick="togglePasswordVisibility('unlock-password', 'btn-toggle-unlock')">
+                                <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                <svg class="w-5 h-5 eye-slash-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
+                            </button>
+                        </div>
+                        <button id="btn-unlock" class="w-full bg-neon hover:bg-neon/90 text-dark font-bold py-3.5 px-4 rounded-lg transition-colors text-sm shadow-[0_0_15px_rgba(24,224,111,0.2)]">
+                            Unlock
+                        </button>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button onclick="navigateTo('/')" class="bg-panel hover:bg-line border border-line text-white font-medium py-2.5 px-6 rounded-lg text-sm transition-colors">Back to New Paste</button>
+                        <button onclick="navigateTo('/archive')" class="bg-panel hover:bg-line border border-line text-white font-medium py-2.5 px-6 rounded-lg text-sm transition-colors">Back to Archive</button>
+                    </div>
+                </div>
+            `;
+
+            const pwInput = document.getElementById('unlock-password');
+            const btnUnlock = document.getElementById('btn-unlock');
+            
+            const handleUnlock = () => verifyPrivatePaste(slug);
+
+            btnUnlock.addEventListener('click', handleUnlock);
+            pwInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleUnlock();
+                }
+            });
+
+            pwInput.focus();
+        }
+
+        async function verifyPrivatePaste(slug) {
+            const pwInput = document.getElementById('unlock-password');
+            const btnUnlock = document.getElementById('btn-unlock');
+            const password = pwInput.value.trim();
+
+            if (!password) {
+                showToast("Password wajib diisi", "error");
+                pwInput.focus();
+                return;
+            }
+
+            const originalText = btnUnlock.innerHTML;
+            setLoading(btnUnlock, true, originalText, 'Unlocking...');
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/pastes/${slug}/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                
+                const result = await res.json();
+
+                if (result.success) {
+                    showToast("Password benar", "success");
+                    renderPasteContent(result.data, slug);
+                } else {
+                    showToast(result.message || "Password salah", "error");
+                    pwInput.value = "";
+                    pwInput.focus();
+                }
+            } catch (error) {
+                showToast("Terjadi kesalahan sistem", "error");
+            } finally {
+                setLoading(btnUnlock, false, originalText);
+            }
+        }
+
+        // ==========================================
         // UI COMPONENTS & MODALS
         // ==========================================
-        function showSuccessModal(data) {
+        function showSuccessModal(data, isPrivate = false) {
             const modal = document.createElement('div');
             const slug = data.slug;
             // Clean URL
             const pasteUrl = data.frontend_url || data.full_url || (FRONTEND_URL + "/p/" + slug);
             
+            const privateNotice = isPrivate ? 
+                `<p class="text-xs text-yellow-500 mt-3 font-medium bg-yellow-500/10 py-2 px-3 rounded border border-yellow-500/20">Paste ini private. Simpan password kamu, karena dibutuhkan untuk membuka paste.</p>` : '';
+
             modal.className = "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-300";
             modal.innerHTML = `
                 <div class="bg-panel border border-line rounded-xl shadow-2xl w-full max-w-[92vw] md:max-w-md transform scale-95 transition-transform duration-300" id="modal-content">
@@ -179,11 +316,13 @@
                         <h3 class="text-xl font-bold text-white mb-2">Paste berhasil dibuat</h3>
                         <p class="text-muted text-sm mb-6">Link paste kamu sudah siap.</p>
                         
-                        <div class="w-full flex bg-panel2 border border-line rounded-lg overflow-hidden mb-6 relative">
+                        <div class="w-full flex bg-panel2 border border-line rounded-lg overflow-hidden mb-3 relative">
                             <input type="text" readonly value="${pasteUrl}" class="w-full bg-transparent text-sm text-muted px-4 py-3 outline-none min-w-0" id="modal-link-input">
                         </div>
                         
-                        <div class="w-full flex flex-col md:flex-row gap-3">
+                        ${privateNotice}
+                        
+                        <div class="w-full flex flex-col md:flex-row gap-3 mt-6">
                             <button id="modal-copy-btn" class="flex-1 bg-line hover:bg-softline text-white py-2.5 px-4 rounded-lg font-medium transition-colors text-sm">
                                 Copy Link
                             </button>
@@ -395,6 +534,18 @@
                                     </div>
                                 </div>
 
+                                <!-- Password Input Field (Hidden By Default) -->
+                                <div id="password-container" class="space-y-1.5 hidden">
+                                    <label class="text-sm font-medium text-muted">Password Private Paste</label>
+                                    <div class="relative">
+                                        <input type="password" id="paste-password" placeholder="Masukkan password untuk membuka paste ini" class="w-full bg-panel border border-line focus:border-neon focus:ring-1 focus:ring-neon rounded-lg px-4 py-2.5 text-sm text-white outline-none transition-all pr-10">
+                                        <button type="button" id="btn-toggle-password" class="absolute inset-y-0 right-0 flex items-center px-3 text-muted hover:text-white transition-colors" onclick="togglePasswordVisibility('paste-password', 'btn-toggle-password')">
+                                            <svg class="w-4 h-4 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                            <svg class="w-4 h-4 eye-slash-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+
                                 <div class="space-y-1.5">
                                     <label class="text-sm font-medium text-muted">Expiration</label>
                                     <div class="relative">
@@ -466,6 +617,9 @@
             const charCountEl = document.getElementById('char-count');
             const submitBtn = document.getElementById('btn-submit');
             const btnTemplate = document.getElementById('btn-save-template');
+            const visibilityEl = document.getElementById('paste-visibility');
+
+            visibilityEl.addEventListener('change', togglePrivatePasswordField);
 
             contentEl.addEventListener('input', () => {
                 charCountEl.textContent = `${contentEl.value.length} chars`;
@@ -511,12 +665,22 @@
             const visibilityEl = document.getElementById('paste-visibility');
             const expirationEl = document.getElementById('paste-expiration');
             const contentEl = document.getElementById('paste-content');
+            const passwordEl = document.getElementById('paste-password');
             const submitBtn = document.getElementById('btn-submit');
 
             const content = contentEl.value.trim();
+            const visibility = visibilityEl.value;
+            const password = passwordEl.value.trim();
+
             if (!content) {
                 showToast("Paste text tidak boleh kosong", "error");
                 contentEl.focus();
+                return;
+            }
+
+            if (visibility === 'private' && !password) {
+                showToast("Password wajib diisi untuk paste private", "error");
+                passwordEl.focus();
                 return;
             }
 
@@ -524,9 +688,13 @@
                 title: titleEl.value.trim() || "Untitled Paste",
                 content: content,
                 syntax: syntaxEl.value,
-                visibility: visibilityEl.value,
+                visibility: visibility,
                 expiration: expirationEl.value
             };
+
+            if (visibility === 'private') {
+                payload.password = password;
+            }
 
             setLoading(submitBtn, true, originalBtnText);
 
@@ -541,7 +709,8 @@
                 if (res.ok && result.success) {
                     contentEl.value = "";
                     document.getElementById('char-count').textContent = "0 chars";
-                    showSuccessModal(result.data);
+                    // Pass isPrivate to show the extra notice
+                    showSuccessModal(result.data, visibility === 'private');
                 } else {
                     throw new Error(result.message || "Gagal membuat paste");
                 }
@@ -609,7 +778,9 @@
                 const result = await res.json();
 
                 if (res.ok && result.success) {
-                    const data = result.data;
+                    // Hanya simpan dan render paste jika visibility != private 
+                    // (Diasumsikan API sudah filter, namun jaga-jaga filter di frontend)
+                    const data = result.data.filter(p => p.visibility !== 'private');
                     const pagination = result.pagination;
                     archiveDataCache = data; 
                     
@@ -700,7 +871,7 @@
         }
 
         // ==========================================
-        // HALAMAN: PASTE DETAIL
+        // HALAMAN: PASTE DETAIL & UNLOCK
         // ==========================================
         async function renderPasteDetail(slug) {
             const html = `
@@ -726,8 +897,10 @@
                 const res = await fetch(`${API_BASE_URL}/api/pastes/${slug}`);
                 const result = await res.json();
 
-                if (res.ok && result.success) {
+                if (result.success) {
                     renderPasteContent(result.data, slug);
+                } else if (!result.success && result.private) {
+                    renderPrivateUnlock(result.data, slug);
                 } else {
                     throw new Error(result.message || "Paste tidak ditemukan");
                 }
