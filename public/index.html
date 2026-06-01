@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,29 +8,34 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Highlight.js -->
+    <!-- Highlight.js (Vercel-like Dark Theme via Github Dark) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
     <!-- Tailwind CSS Config -->
     <script>
         tailwind = {
+            darkMode: 'class',
             config: {
                 theme: {
                     extend: {
                         colors: {
-                            dark: "#111111",
-                            panel: "#202020",
-                            panel2: "#181818",
-                            line: "#333333",
-                            softline: "#444444",
-                            neon: "#18e06f",
-                            muted: "#a3a3a3"
+                            vercel: {
+                                black: "#000000",
+                                dark: "#0A0A0A",
+                                hover: "#141414",
+                                gray: "#888888",
+                                light: "#EDEDED"
+                            }
                         },
                         fontFamily: {
                             inter: ["Inter", "sans-serif"]
+                        },
+                        boxShadow: {
+                            'glow': '0 0 20px rgba(255, 255, 255, 0.05)',
+                            'glow-lg': '0 0 30px rgba(255, 255, 255, 0.08)'
                         }
                     }
                 }
@@ -43,46 +48,69 @@
 
     <style>
         body {
-            background-color: #111111;
-            color: #ffffff;
+            background-color: #000000;
+            color: #EDEDED;
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
-        /* Custom Scrollbar */
+        /* Minimalist Scrollbar */
         ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #111111;
+            background: transparent;
         }
         ::-webkit-scrollbar-thumb {
-            background: #333333;
-            border-radius: 4px;
+            background: #333;
+            border-radius: 10px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #444444;
+            background: #555;
         }
 
-        /* Input Styles overrides */
+        /* Highlight.js Background override for seamless look */
+        .hljs {
+            background: transparent !important;
+            padding: 0 !important;
+        }
+
+        /* Form Elements overrides (Borderless SaaS style) */
         input[type="text"], input[type="password"], select, textarea {
-            background-color: #181818;
-            border: 1px solid #333333;
-            color: white;
+            background-color: rgba(255, 255, 255, 0.03);
+            border: none;
+            color: #EDEDED;
             outline: none;
-            transition: border-color 0.2s;
+            transition: all 0.2s ease;
+        }
+        input[type="text"]:hover, input[type="password"]:hover, select:hover, textarea:hover {
+            background-color: rgba(255, 255, 255, 0.06);
         }
         input[type="text"]:focus, input[type="password"]:focus, select:focus, textarea:focus {
-            border-color: #18e06f;
+            background-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
         }
 
+        /* Custom Dropdown Arrow */
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23888888'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1rem;
+            padding-right: 2.5rem;
+        }
+
+        /* Vercel-like Loader */
         .loader {
-            border: 3px solid #333333;
-            border-top: 3px solid #18e06f;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #fff;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
             animation: spin 1s linear infinite;
         }
         
@@ -91,23 +119,28 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Sleek Toast Animation */
         .toast-enter {
-            transform: translateY(100%);
+            transform: translateY(100%) scale(0.95);
             opacity: 0;
         }
         .toast-enter-active {
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
             opacity: 1;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .toast-exit {
-            transform: translateY(100%);
+            transform: translateY(10px) scale(0.95);
             opacity: 0;
-            transition: all 0.3s ease-in;
+            transition: all 0.2s ease-in;
         }
+        
+        /* Modal Animation */
+        .modal-enter { opacity: 0; transform: scale(0.95); }
+        .modal-enter-active { opacity: 1; transform: scale(1); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
     </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col selection:bg-white/20 selection:text-white">
 
     <!-- Global App Container -->
     <div id="app" class="flex flex-col min-h-screen"></div>
@@ -115,8 +148,8 @@
     <!-- Modal Root -->
     <div id="modal-root"></div>
 
-    <!-- Toast Container -->
-    <div id="toast-container" class="fixed bottom-4 left-1/2 -translate-x-1/2 md:left-auto md:-translate-x-0 md:right-4 z-50 flex flex-col gap-2"></div>
+    <!-- Toast Container (Vercel position: bottom-right) -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 items-end pointer-events-none"></div>
 
     <script>
         // === CONFIGURATION ===
@@ -144,7 +177,7 @@
             const date = new Date(timestamp);
             return new Intl.DateTimeFormat('id-ID', {
                 day: 'numeric',
-                month: 'long',
+                month: 'short',
                 year: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit'
@@ -159,15 +192,14 @@
             const minutes = Math.floor((totalSeconds % 3600) / 60);
             const seconds = totalSeconds % 60;
 
-            if (days > 0) return `${days} hari ${hours} jam`;
-            if (hours > 0) return `${hours} jam ${minutes} menit`;
+            if (days > 0) return `${days}d ${hours}h`;
+            if (hours > 0) return `${hours}h ${minutes}m`;
             if (minutes > 0) return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            return `${seconds} detik`;
+            return `${seconds}s`;
         }
 
         function startCountdown(elementId, expiresAt, onExpired = null) {
             if (!expiresAt) return;
-            
             const element = document.getElementById(elementId);
             if (!element) return;
 
@@ -185,7 +217,7 @@
                 }
             };
 
-            update(); // initial call
+            update();
             activeIntervals[elementId] = setInterval(update, 1000);
         }
 
@@ -208,27 +240,25 @@
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             
-            let bgClass = type === 'success' ? 'bg-neon text-dark' : (type === 'error' ? 'bg-red-500 text-white' : 'bg-panel text-white');
-            
-            toast.className = `toast-enter flex items-center px-4 py-3 rounded shadow-lg font-medium text-sm border border-line ${bgClass} min-w-[280px]`;
-            toast.innerHTML = `
-                <div class="flex-1">${escapeHtml(message)}</div>
-                <button onclick="this.parentElement.remove()" class="ml-4 opacity-70 hover:opacity-100">&times;</button>
-            `;
+            // Vercel style toast: black pill, subtle shadow, left indicator if error
+            let icon = type === 'success' 
+                ? `<svg class="w-4 h-4 text-vercel-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`
+                : `<svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+
+            toast.className = `toast-enter pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-full shadow-2xl bg-[#111] text-sm text-vercel-light ring-1 ring-white/10`;
+            toast.innerHTML = `${icon} <span class="font-medium">${escapeHtml(message)}</span>`;
             
             container.appendChild(toast);
             
-            // Animate in
             requestAnimationFrame(() => {
                 toast.classList.remove('toast-enter');
                 toast.classList.add('toast-enter-active');
             });
 
-            // Auto close
             setTimeout(() => {
                 toast.classList.remove('toast-enter-active');
                 toast.classList.add('toast-exit');
-                setTimeout(() => toast.remove(), 300);
+                setTimeout(() => toast.remove(), 200);
             }, 3000);
         }
 
@@ -236,8 +266,8 @@
             const root = document.getElementById('modal-root');
             root.innerHTML = `
                 <div class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal()"></div>
-                    <div class="relative bg-panel border border-line rounded-lg shadow-2xl w-full max-w-[92vw] md:max-w-md overflow-hidden transform transition-all">
+                    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+                    <div class="modal-enter-active relative bg-vercel-dark rounded-xl shadow-[0_0_40px_rgba(0,0,0,0.5)] ring-1 ring-white/10 w-full max-w-[92vw] md:max-w-md overflow-hidden">
                         ${htmlContent}
                     </div>
                 </div>
@@ -258,16 +288,14 @@
 
         function copyText(text, buttonElement) {
             navigator.clipboard.writeText(text).then(() => {
-                showToast("Berhasil disalin!", "success");
+                showToast("Copied to clipboard", "success");
                 if (buttonElement) {
                     const originalText = buttonElement.innerHTML;
                     buttonElement.innerHTML = `<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Copied`;
-                    setTimeout(() => {
-                        buttonElement.innerHTML = originalText;
-                    }, 2000);
+                    setTimeout(() => { buttonElement.innerHTML = originalText; }, 2000);
                 }
             }).catch(err => {
-                showToast("Gagal menyalin text", "error");
+                showToast("Failed to copy", "error");
             });
         }
 
@@ -276,11 +304,14 @@
             if (!btn) return;
             if (isLoading) {
                 btn.disabled = true;
-                btn.classList.add('opacity-70', 'cursor-not-allowed');
-                btn.innerHTML = `<div class="flex items-center justify-center"><div class="loader mr-2 border-t-dark"></div> Saving...</div>`;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                // Adjust loader color based on button background (white bg -> dark loader)
+                const isWhiteBtn = btn.classList.contains('bg-vercel-light');
+                const loaderBorder = isWhiteBtn ? 'border-vercel-dark' : 'border-vercel-light';
+                btn.innerHTML = `<div class="flex items-center justify-center"><div class="loader mr-2 ${loaderBorder} !border-l-transparent"></div></div>`;
             } else {
                 btn.disabled = false;
-                btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
                 btn.innerHTML = originalText;
             }
         }
@@ -290,10 +321,10 @@
             const icon = document.getElementById(iconId);
             if (input.type === "password") {
                 input.type = "text";
-                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />`;
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />`;
             } else {
                 input.type = "password";
-                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
             }
         }
 
@@ -311,7 +342,7 @@
             const app = document.getElementById('app');
             
             // Render basic layout header first
-            app.innerHTML = renderHeader() + `<main id="main-content" class="flex-1 w-full max-w-7xl mx-auto"></main>`;
+            app.innerHTML = renderHeader() + `<main id="main-content" class="flex-1 w-full max-w-5xl mx-auto px-4 md:px-8 py-8"></main>`;
             const main = document.getElementById('main-content');
 
             if (path === "/" || path === "") {
@@ -338,16 +369,17 @@
             const isArchive = currentPath === '/archive';
             
             return `
-                <header class="bg-panel border-b border-line sticky top-0 z-40">
-                    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-                        <a href="/" onclick="event.preventDefault(); navigateTo('/')" class="flex items-center gap-2 text-xl font-bold tracking-tight text-white hover:text-neon transition-colors">
-                            <svg class="w-6 h-6 text-neon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <header class="sticky top-0 z-40 bg-vercel-black/70 backdrop-blur-lg border-b border-white/5">
+                    <div class="max-w-5xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
+                        <a href="/" onclick="event.preventDefault(); navigateTo('/')" class="flex items-center gap-3 text-lg font-semibold tracking-tight text-vercel-light hover:opacity-80 transition-opacity">
+                            <div class="w-7 h-7 bg-white text-black flex items-center justify-center rounded-md">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            </div>
                             Pasteview
                         </a>
-                        <nav class="flex items-center gap-4 text-sm font-medium">
-                            <a href="/" onclick="event.preventDefault(); navigateTo('/')" class="${isHome ? 'text-neon' : 'text-muted hover:text-white'} transition-colors hidden md:block">+ New Paste</a>
-                            <a href="/archive" onclick="event.preventDefault(); navigateTo('/archive')" class="${isArchive ? 'text-neon' : 'text-muted hover:text-white'} transition-colors flex items-center gap-1.5">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                        <nav class="flex items-center gap-6 text-sm font-medium">
+                            <a href="/" onclick="event.preventDefault(); navigateTo('/')" class="${isHome ? 'text-white' : 'text-vercel-gray hover:text-white'} transition-colors hidden md:block">Create</a>
+                            <a href="/archive" onclick="event.preventDefault(); navigateTo('/archive')" class="${isArchive ? 'text-white' : 'text-vercel-gray hover:text-white'} transition-colors flex items-center gap-2">
                                 Archive
                             </a>
                         </nav>
@@ -359,24 +391,24 @@
         // === VIEW: NEW PASTE ===
         function getNewPasteHTML() {
             return `
-                <div class="grid grid-cols-1 lg:grid-cols-[330px_1fr] gap-0 lg:gap-6 p-0 lg:p-6 h-full">
+                <div class="flex flex-col md:flex-row gap-8 lg:gap-12 h-full">
                     
-                    <!-- Sidebar Form -->
-                    <div class="bg-panel lg:rounded-xl border-b lg:border border-line p-5 space-y-5 h-fit order-2 lg:order-1 mt-6 lg:mt-0 mb-8 lg:mb-0">
-                        <div class="mb-2 hidden lg:block">
-                            <h2 class="text-lg font-bold text-white">Create New Paste</h2>
-                            <p class="text-xs text-muted mt-1">Configure your paste settings.</p>
+                    <!-- Sidebar Form (No Borders, Minimalist) -->
+                    <div class="w-full md:w-72 shrink-0 space-y-6 flex flex-col order-2 md:order-1 mb-10 md:mb-0">
+                        <div class="hidden md:block mb-2">
+                            <h2 class="text-xl font-semibold tracking-tight text-vercel-light">Settings</h2>
+                            <p class="text-sm text-vercel-gray mt-1">Configure your paste options.</p>
                         </div>
                         
-                        <div class="space-y-4">
+                        <div class="space-y-5">
                             <div>
-                                <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wider">Title</label>
-                                <input type="text" id="p-title" placeholder="Untitled Paste" class="w-full px-3 py-2.5 rounded text-sm placeholder-softline focus:ring-1 focus:ring-neon">
+                                <label class="block text-sm font-medium text-vercel-gray mb-2">Title</label>
+                                <input type="text" id="p-title" placeholder="Optional title..." class="w-full px-3 py-2.5 rounded-md text-sm">
                             </div>
 
                             <div>
-                                <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wider">Syntax Highlighting</label>
-                                <select id="p-syntax" class="w-full px-3 py-2.5 rounded text-sm appearance-none cursor-pointer">
+                                <label class="block text-sm font-medium text-vercel-gray mb-2">Language</label>
+                                <select id="p-syntax" class="w-full px-3 py-2.5 rounded-md text-sm cursor-pointer">
                                     <option value="text">Plain Text</option>
                                     <option value="javascript">JavaScript</option>
                                     <option value="html">HTML</option>
@@ -393,13 +425,12 @@
                                     <option value="cpp">C++</option>
                                     <option value="go">Go</option>
                                     <option value="rust">Rust</option>
-                                    <option value="ruby">Ruby</option>
                                 </select>
                             </div>
 
                             <div>
-                                <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wider">Visibility</label>
-                                <select id="p-visibility" class="w-full px-3 py-2.5 rounded text-sm appearance-none cursor-pointer">
+                                <label class="block text-sm font-medium text-vercel-gray mb-2">Visibility</label>
+                                <select id="p-visibility" class="w-full px-3 py-2.5 rounded-md text-sm cursor-pointer">
                                     <option value="public">Public</option>
                                     <option value="unlisted">Unlisted</option>
                                     <option value="private">Private (Password)</option>
@@ -407,54 +438,49 @@
                             </div>
 
                             <div id="password-wrapper" class="hidden">
-                                <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wider">Password Private Paste</label>
+                                <label class="block text-sm font-medium text-vercel-gray mb-2">Password</label>
                                 <div class="relative">
-                                    <input type="password" id="p-password" placeholder="Masukkan password min 4 kar" class="w-full px-3 py-2.5 rounded text-sm pr-10">
-                                    <button type="button" onclick="togglePasswordVisibility('p-password', 'eye-icon-new')" class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted hover:text-white">
-                                        <svg id="eye-icon-new" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                    <input type="password" id="p-password" placeholder="Min 4 characters" class="w-full px-3 py-2.5 rounded-md text-sm pr-10">
+                                    <button type="button" onclick="togglePasswordVisibility('p-password', 'eye-icon-new')" class="absolute inset-y-0 right-0 flex items-center pr-3 text-vercel-gray hover:text-white transition-colors">
+                                        <svg id="eye-icon-new" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                     </button>
                                 </div>
                             </div>
 
                             <div>
-                                <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wider">Expiration</label>
-                                <select id="p-expiration" class="w-full px-3 py-2.5 rounded text-sm appearance-none cursor-pointer">
+                                <label class="block text-sm font-medium text-vercel-gray mb-2">Expiration</label>
+                                <select id="p-expiration" class="w-full px-3 py-2.5 rounded-md text-sm cursor-pointer">
                                     <option value="never">No Expiration</option>
                                     <option value="5m">5 Minutes</option>
                                     <option value="10m">10 Minutes</option>
                                     <option value="30m">30 Minutes</option>
                                     <option value="1h">1 Hour</option>
                                     <option value="6h">6 Hours</option>
-                                    <option value="12h">12 Hours</option>
                                     <option value="1d">1 Day</option>
-                                    <option value="3d">3 Days</option>
                                     <option value="7d">7 Days</option>
-                                    <option value="30d">30 Days</option>
                                 </select>
                             </div>
                         </div>
 
-                        <button id="btn-submit-paste" class="w-full bg-neon text-dark font-bold py-3 rounded hover:bg-[#15c561] transition-colors mt-6 shadow-[0_0_15px_rgba(24,224,111,0.2)]">
-                            Create Paste
-                        </button>
+                        <div class="pt-4 mt-auto">
+                            <button id="btn-submit-paste" class="w-full bg-vercel-light text-vercel-black font-medium py-2.5 rounded-md hover:bg-white transition-colors shadow-glow">
+                                Create Paste
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Editor Area -->
-                    <div class="flex flex-col h-full order-1 lg:order-2 bg-[#141414] lg:bg-transparent">
-                        <div class="flex items-center justify-between p-3 lg:px-0 lg:py-2 border-b lg:border-none border-line">
-                            <div class="text-sm font-medium text-muted">Editor</div>
-                            <div class="flex items-center gap-3 text-xs">
-                                <span id="char-count" class="text-muted">0 Chars</span>
-                                <button onclick="document.getElementById('p-content').value=''; document.getElementById('char-count').textContent='0 Chars';" class="text-muted hover:text-white transition">Clear</button>
+                    <!-- Editor Area (Glassy/Sleek Panel) -->
+                    <div class="flex-1 flex flex-col order-1 md:order-2">
+                        <div class="flex items-center justify-between mb-4">
+                            <h1 class="text-2xl font-bold tracking-tight text-white md:hidden">New Paste</h1>
+                            <div class="flex items-center gap-4 text-xs font-medium text-vercel-gray ml-auto">
+                                <span id="char-count">0 Chars</span>
+                                <button onclick="document.getElementById('p-content').value=''; document.getElementById('char-count').textContent='0 Chars';" class="hover:text-white transition-colors">Clear</button>
                             </div>
                         </div>
                         
-                        <div class="flex-1 relative group rounded-none lg:rounded-xl overflow-hidden border-y lg:border border-line bg-panel2 focus-within:border-neon transition-colors">
-                            <textarea id="p-content" class="w-full h-full min-h-[360px] lg:min-h-[560px] bg-transparent text-white p-4 font-mono text-sm resize-none focus:outline-none" placeholder="Paste your code or text here..." spellcheck="false"></textarea>
-                        </div>
-                        
-                        <div class="p-3 text-center text-xs text-softline border-b lg:border-none border-line lg:mt-2">
-                            Drop one file here or click to upload to Uploadery (UI Only)
+                        <div class="flex-1 flex flex-col bg-vercel-dark rounded-xl relative group focus-within:ring-1 focus-within:ring-white/20 transition-all">
+                            <textarea id="p-content" class="w-full flex-1 min-h-[400px] md:min-h-[600px] bg-transparent text-vercel-light p-5 font-mono text-[13px] leading-relaxed resize-none focus:outline-none !shadow-none !ring-0" placeholder="Type or paste your code here..." spellcheck="false"></textarea>
                         </div>
                     </div>
                 </div>
@@ -491,10 +517,10 @@
                 const password = document.getElementById('p-password').value;
 
                 if (!content) {
-                    return showToast("Content paste tidak boleh kosong!", "error");
+                    return showToast("Content cannot be empty", "error");
                 }
                 if (visibility === 'private' && password.length < 4) {
-                    return showToast("Password private minimal 4 karakter!", "error");
+                    return showToast("Password must be at least 4 characters", "error");
                 }
 
                 setLoading('btn-submit-paste', true, "Create Paste");
@@ -516,10 +542,10 @@
                         syncServerTime(data.server_time);
                         showSuccessModal(data.data);
                     } else {
-                        showToast(data.message || "Gagal membuat paste", "error");
+                        showToast(data.message || "Failed to create paste", "error");
                     }
                 } catch (error) {
-                    showToast("Terjadi kesalahan jaringan", "error");
+                    showToast("Network error occurred", "error");
                 } finally {
                     setLoading('btn-submit-paste', false, "Create Paste");
                 }
@@ -532,9 +558,9 @@
             let warningHtml = '';
             if (pasteData.visibility === 'private') {
                 warningHtml = `
-                    <div class="bg-yellow-500/10 border border-yellow-500/30 text-yellow-500 text-sm p-3 rounded mb-4 flex gap-2 items-start">
-                        <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                        <p>Paste ini private. Simpan password kamu, karena dibutuhkan untuk membuka paste.</p>
+                    <div class="bg-white/5 border border-white/10 text-vercel-light text-sm p-4 rounded-lg mb-6 flex gap-3 items-start">
+                        <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        <p class="leading-relaxed">This paste is private. Save your password, it's required to unlock this paste later.</p>
                     </div>
                 `;
             }
@@ -542,35 +568,35 @@
             let expireHtml = '';
             if (pasteData.expires_at) {
                 expireHtml = `
-                    <div class="text-sm text-muted mb-4 text-center">
-                        Paste akan expired dalam: <span id="modal-countdown-${pasteData.slug}" class="text-neon font-mono font-medium">--:--</span>
-                    </div>
+                    <p class="text-sm text-vercel-gray mb-6 text-center">
+                        Expires in: <span id="modal-countdown-${pasteData.slug}" class="text-vercel-light font-mono font-medium">--:--</span>
+                    </p>
                 `;
             }
 
             showModal(`
-                <div class="p-6">
-                    <div class="w-12 h-12 rounded-full bg-neon/10 text-neon flex items-center justify-center mx-auto mb-4">
+                <div class="p-8">
+                    <div class="w-12 h-12 rounded-full bg-white/10 text-white flex items-center justify-center mx-auto mb-5 ring-1 ring-white/20">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                     </div>
-                    <h3 class="text-xl font-bold text-center text-white mb-2">Paste Created!</h3>
-                    <p class="text-center text-sm text-muted mb-6">Your paste has been successfully saved.</p>
+                    <h3 class="text-xl font-bold tracking-tight text-center text-white mb-2">Paste Created</h3>
+                    <p class="text-center text-sm text-vercel-gray mb-6">Your snippet is ready to be shared.</p>
                     
                     ${warningHtml}
                     ${expireHtml}
 
-                    <div class="flex items-center gap-2 mb-6">
-                        <input type="text" readonly value="${url}" class="flex-1 bg-panel2 border border-line text-muted text-sm px-3 py-2.5 rounded focus:outline-none">
-                        <button onclick="copyText('${url}', this)" class="bg-line hover:bg-softline text-white px-4 py-2.5 rounded text-sm font-medium transition flex items-center">
+                    <div class="flex items-center gap-2 mb-8 bg-black rounded-md p-1 ring-1 ring-white/10">
+                        <input type="text" readonly value="${url}" class="flex-1 bg-transparent text-vercel-gray text-sm px-3 py-2 focus:outline-none !shadow-none !ring-0">
+                        <button onclick="copyText('${url}', this)" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center">
                             Copy
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
-                        <button onclick="closeModal(); document.getElementById('p-content').value=''; document.getElementById('p-title').value='';" class="px-4 py-2.5 rounded text-sm font-medium border border-line text-white hover:bg-panel2 transition">
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button onclick="closeModal(); document.getElementById('p-content').value=''; document.getElementById('p-title').value='';" class="flex-1 px-4 py-2.5 rounded-md text-sm font-medium bg-transparent text-vercel-light hover:bg-white/5 transition-colors">
                             Create Another
                         </button>
-                        <button onclick="closeModal(); navigateTo('/p/${pasteData.slug}')" class="px-4 py-2.5 rounded text-sm font-medium bg-neon text-dark hover:bg-[#15c561] transition">
+                        <button onclick="closeModal(); navigateTo('/p/${pasteData.slug}')" class="flex-1 px-4 py-2.5 rounded-md text-sm font-medium bg-vercel-light text-vercel-black hover:bg-white transition-colors shadow-glow">
                             Open Paste
                         </button>
                     </div>
@@ -585,20 +611,20 @@
         // === VIEW: ARCHIVE ===
         function getArchiveHTML() {
             return `
-                <div class="p-4 lg:p-8">
-                    <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div class="w-full">
+                    <div class="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                         <div>
-                            <h1 class="text-2xl font-bold text-white">Public Archive</h1>
-                            <p class="text-muted text-sm mt-1">Browse recently shared public and protected pastes.</p>
+                            <h1 class="text-3xl font-bold tracking-tight text-white">Archive</h1>
+                            <p class="text-vercel-gray text-sm mt-2">Recently shared public and protected snippets.</p>
                         </div>
-                        <button onclick="fetchArchive(1)" class="text-sm flex items-center gap-2 px-4 py-2 rounded bg-panel border border-line hover:border-softline transition text-white w-fit">
+                        <button onclick="fetchArchive(1)" class="text-sm font-medium flex items-center gap-2 px-4 py-2 rounded-md bg-white/5 hover:bg-white/10 transition-colors text-white w-fit">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                             Refresh
                         </button>
                     </div>
                     
-                    <div id="archive-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="col-span-full py-12 flex justify-center">
+                    <div id="archive-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <div class="col-span-full py-20 flex justify-center">
                             <div class="loader"></div>
                         </div>
                     </div>
@@ -621,7 +647,7 @@
                     listEl.innerHTML = `<div class="col-span-full text-center text-red-400 py-8">${escapeHtml(data.message)}</div>`;
                 }
             } catch (error) {
-                listEl.innerHTML = `<div class="col-span-full text-center text-red-400 py-8">Failed to load archive.</div>`;
+                listEl.innerHTML = `<div class="col-span-full text-center text-vercel-gray py-8">Failed to load archive.</div>`;
             }
         }
 
@@ -629,12 +655,12 @@
             const listEl = document.getElementById('archive-list');
             if (!pastes || pastes.length === 0) {
                 listEl.innerHTML = `
-                    <div class="col-span-full flex flex-col items-center justify-center py-16 text-center border border-dashed border-line rounded-xl">
-                        <div class="w-16 h-16 rounded-full bg-panel flex items-center justify-center text-muted mb-4">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                    <div class="col-span-full flex flex-col items-center justify-center py-20 text-center bg-vercel-dark rounded-xl">
+                        <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-vercel-gray mb-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
                         </div>
-                        <h3 class="text-lg font-medium text-white mb-1">No pastes found</h3>
-                        <p class="text-muted text-sm">The archive is currently empty.</p>
+                        <h3 class="text-lg font-medium text-white mb-1">No snippets found</h3>
+                        <p class="text-vercel-gray text-sm">The archive is currently empty.</p>
                     </div>`;
                 return;
             }
@@ -646,45 +672,49 @@
                 const isExpired = paste.expires_at && (paste.expires_at - getCurrentServerTime() <= 0);
                 
                 const card = document.createElement('div');
-                card.className = "bg-panel border border-line rounded-xl p-5 hover:border-softline transition-colors flex flex-col h-full relative overflow-hidden group";
+                // Vercel style card: solid subtle dark bg, hover state, no harsh border
+                card.className = "bg-vercel-dark p-6 rounded-xl flex flex-col h-full relative group hover:bg-vercel-hover transition-colors";
                 
-                let visibilityBadge = isPrivate ? 
-                    `<span class="bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded font-bold flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Private</span>` : 
-                    `<span class="bg-neon/10 text-neon border border-neon/20 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded font-bold">Public</span>`;
+                let visibilityIcon = isPrivate 
+                    ? `<svg class="w-4 h-4 text-vercel-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>` 
+                    : `<svg class="w-4 h-4 text-vercel-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
 
                 let timeInfo = '';
                 if (paste.expires_at) {
-                    timeInfo = `<div class="mt-4 pt-3 border-t border-line text-xs flex justify-between items-center text-muted">
-                        <span>Expires in:</span>
-                        <span id="card-timer-${paste.slug}" class="font-mono ${isExpired ? 'text-red-400' : 'text-neon'}">Loading...</span>
+                    timeInfo = `<div class="mt-5 pt-4 border-t border-white/5 text-[13px] flex justify-between items-center text-vercel-gray">
+                        <span>Expires in</span>
+                        <span id="card-timer-${paste.slug}" class="font-mono font-medium ${isExpired ? 'text-red-400' : 'text-vercel-light'}">--:--</span>
                     </div>`;
                 }
 
                 let actionButton = '';
                 if (isExpired) {
-                     actionButton = `<button disabled class="w-full mt-4 py-2 bg-line text-muted rounded text-sm font-medium cursor-not-allowed">Expired</button>`;
+                     actionButton = `<button disabled class="w-full mt-4 py-2 bg-white/5 text-vercel-gray rounded-md text-sm font-medium cursor-not-allowed">Expired</button>`;
                 } else if (isPrivate) {
-                     actionButton = `<button onclick='openArchivePrivateModal(${JSON.stringify(paste).replace(/'/g, "&apos;")})' class="w-full mt-4 py-2 bg-panel2 border border-line hover:bg-line text-white rounded text-sm font-medium transition flex items-center justify-center gap-2"><svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Unlock Paste</button>`;
+                     actionButton = `<button onclick='openArchivePrivateModal(${JSON.stringify(paste).replace(/'/g, "&apos;")})' class="w-full mt-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2">Unlock Paste</button>`;
                 } else {
-                     actionButton = `<button onclick="navigateTo('/p/${paste.slug}')" class="w-full mt-4 py-2 bg-neon/10 text-neon hover:bg-neon hover:text-dark rounded text-sm font-medium transition">View Paste</button>`;
+                     actionButton = `<button onclick="navigateTo('/p/${paste.slug}')" class="w-full mt-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-md text-sm font-medium transition-colors">View Paste</button>`;
                 }
 
                 card.innerHTML = `
                     <div class="flex-1">
-                        <div class="flex justify-between items-start mb-3">
-                            <h3 class="font-bold text-white text-lg truncate pr-3" title="${escapeHtml(paste.title || 'Untitled')}">${escapeHtml(paste.title || 'Untitled')}</h3>
-                            ${visibilityBadge}
+                        <div class="flex justify-between items-start mb-3 gap-2">
+                            <h3 class="font-semibold text-white text-base truncate flex-1" title="${escapeHtml(paste.title || 'Untitled')}">${escapeHtml(paste.title || 'Untitled')}</h3>
+                            <div class="shrink-0 pt-0.5" title="${isPrivate ? 'Private' : 'Public'}">${visibilityIcon}</div>
                         </div>
-                        <div class="flex items-center gap-3 text-xs text-muted mb-4">
-                            <span class="bg-panel2 px-2 py-1 rounded text-[11px] font-mono border border-line uppercase">${paste.syntax || 'text'}</span>
-                            <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> ${paste.views || 0}</span>
+                        <div class="flex flex-wrap items-center gap-3 text-[13px] text-vercel-gray mb-1">
+                            <span class="capitalize">${paste.syntax || 'text'}</span>
+                            <span class="w-1 h-1 rounded-full bg-vercel-gray/50"></span>
+                            <span class="flex items-center gap-1">${paste.views || 0} views</span>
                         </div>
-                        <div class="text-xs text-softline">
-                            Created: ${formatDate(paste.created_at)}
+                        <div class="text-[12px] text-vercel-gray/70 mt-3">
+                            ${formatDate(paste.created_at)}
                         </div>
                     </div>
                     ${timeInfo}
-                    ${actionButton}
+                    <div class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                        ${actionButton}
+                    </div>
                 `;
                 listEl.appendChild(card);
 
@@ -696,25 +726,27 @@
 
         function openArchivePrivateModal(paste) {
             showModal(`
-                <div class="p-6">
-                    <div class="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                <div class="p-8">
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold tracking-tight text-white mb-2 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-vercel-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            Protected Paste
+                        </h3>
+                        <p class="text-sm text-vercel-gray">"${escapeHtml(paste.title || 'Untitled')}" requires a password to view.</p>
                     </div>
-                    <h3 class="text-xl font-bold text-center text-white mb-1">Private Paste</h3>
-                    <p class="text-center text-sm text-muted mb-6">"${escapeHtml(paste.title || 'Untitled')}" requires a password.</p>
                     
-                    <div class="space-y-4 mb-6">
+                    <div class="space-y-4 mb-8">
                         <div class="relative">
-                            <input type="password" id="modal-unlock-password" placeholder="Enter password..." class="w-full px-4 py-3 bg-panel2 border border-line rounded text-white focus:border-neon pr-10" onkeypress="if(event.key === 'Enter') verifyArchiveUnlock('${paste.slug}')">
-                            <button type="button" onclick="togglePasswordVisibility('modal-unlock-password', 'eye-icon-modal')" class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted hover:text-white">
-                                <svg id="eye-icon-modal" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <input type="password" id="modal-unlock-password" placeholder="Enter password" class="w-full px-4 py-3 bg-black rounded-md text-white pr-10" onkeypress="if(event.key === 'Enter') verifyArchiveUnlock('${paste.slug}')">
+                            <button type="button" onclick="togglePasswordVisibility('modal-unlock-password', 'eye-icon-modal')" class="absolute inset-y-0 right-0 flex items-center pr-4 text-vercel-gray hover:text-white transition-colors">
+                                <svg id="eye-icon-modal" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                             </button>
                         </div>
                     </div>
 
-                    <div class="flex gap-3">
-                        <button onclick="closeModal()" class="flex-1 px-4 py-2.5 rounded text-sm font-medium border border-line text-white hover:bg-panel2 transition">Cancel</button>
-                        <button id="btn-modal-unlock" onclick="verifyArchiveUnlock('${paste.slug}')" class="flex-1 px-4 py-2.5 rounded text-sm font-medium bg-neon text-dark hover:bg-[#15c561] transition">Unlock</button>
+                    <div class="flex gap-3 justify-end">
+                        <button onclick="closeModal()" class="px-5 py-2.5 rounded-md text-sm font-medium text-vercel-light hover:bg-white/5 transition-colors">Cancel</button>
+                        <button id="btn-modal-unlock" onclick="verifyArchiveUnlock('${paste.slug}')" class="px-5 py-2.5 rounded-md text-sm font-medium bg-vercel-light text-vercel-black hover:bg-white transition-colors">Unlock</button>
                     </div>
                 </div>
             `);
@@ -724,7 +756,7 @@
         async function verifyArchiveUnlock(slug) {
             const pwdInput = document.getElementById('modal-unlock-password');
             const password = pwdInput.value;
-            if(!password) return showToast("Password wajib diisi!", "error");
+            if(!password) return showToast("Password is required", "error");
 
             setLoading('btn-modal-unlock', true, "Unlock");
             try {
@@ -736,31 +768,29 @@
                 const data = await res.json();
                 
                 if (data.success) {
-                    window.__unlockedPaste = data.data; // Simpan data untuk dirender di halaman detail
+                    window.__unlockedPaste = data.data;
                     closeModal();
                     navigateTo(`/p/${slug}`);
                 } else {
-                    showToast(data.message || "Password salah", "error");
+                    showToast(data.message || "Incorrect password", "error");
                     pwdInput.value = '';
                     pwdInput.focus();
                 }
             } catch(e) {
-                showToast("Terjadi kesalahan jaringan", "error");
+                showToast("Network error", "error");
             } finally {
                 setLoading('btn-modal-unlock', false, "Unlock");
             }
         }
 
-
         // === VIEW: PASTE DETAIL ===
         async function renderPasteDetail(slug) {
             const main = document.getElementById('main-content');
-            main.innerHTML = `<div class="flex justify-center py-20"><div class="loader w-10 h-10 border-4 border-t-neon"></div></div>`;
+            main.innerHTML = `<div class="flex justify-center py-32"><div class="loader w-8 h-8 border-[3px]"></div></div>`;
 
-            // Cek apakah sudah di-unlock dari archive
             if (window.__unlockedPaste && window.__unlockedPaste.slug === slug) {
                 const pasteData = window.__unlockedPaste;
-                window.__unlockedPaste = null; // consume
+                window.__unlockedPaste = null;
                 renderPasteContent(pasteData, main);
                 return;
             }
@@ -781,7 +811,7 @@
                     renderNotFound(main);
                 }
             } catch(e) {
-                main.innerHTML = `<div class="text-center py-20 text-red-400">Failed to load paste. Check connection.</div>`;
+                main.innerHTML = `<div class="text-center py-20 text-red-400">Failed to load snippet. Check your connection.</div>`;
             }
         }
 
@@ -793,41 +823,43 @@
             }
 
             const isPrivate = paste.visibility === 'private';
-            let visibilityBadge = isPrivate ? 
-                    `<span class="bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded font-bold flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Private</span>` : 
-                    `<span class="bg-neon/10 text-neon border border-neon/20 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded font-bold flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> ${paste.visibility}</span>`;
+            let visibilityLabel = isPrivate ? 'Private' : 'Public';
+            let visibilityIcon = isPrivate 
+                ? `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>`
+                : `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
 
             let timerHtml = '';
             if (paste.expires_at) {
                 timerHtml = `
-                    <div class="flex items-center gap-2 text-sm bg-panel border border-line px-3 py-1.5 rounded text-muted">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Expires in: <span id="detail-timer-${paste.slug}" class="font-mono text-neon font-medium ml-1">Loading...</span>
+                    <div class="flex items-center gap-2 text-sm bg-vercel-dark px-3 py-1.5 rounded-full text-vercel-gray ring-1 ring-white/5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span id="detail-timer-${paste.slug}" class="font-mono text-vercel-light font-medium ml-1">--:--</span>
                     </div>
                 `;
             }
 
             container.innerHTML = `
-                <div class="p-0 md:p-6 lg:p-8 max-w-5xl mx-auto w-full">
+                <div class="w-full">
                     
-                    <!-- Header -->
-                    <div class="bg-panel md:rounded-t-xl border-b md:border border-line p-4 md:p-6 mb-0 md:mb-6 flex flex-col md:flex-row md:items-start justify-between gap-4">
+                    <!-- Detail Header -->
+                    <div class="mb-8 flex flex-col md:flex-row md:items-start justify-between gap-4">
                         <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-3 mb-2 flex-wrap">
-                                <h1 class="text-xl md:text-2xl font-bold text-white truncate" title="${escapeHtml(paste.title || 'Untitled Paste')}">${escapeHtml(paste.title || 'Untitled Paste')}</h1>
-                                ${visibilityBadge}
-                            </div>
-                            <div class="flex items-center gap-4 text-xs md:text-sm text-muted flex-wrap">
-                                <span class="flex items-center gap-1.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                                    <span class="uppercase">${paste.syntax}</span>
+                            <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-white truncate mb-4" title="${escapeHtml(paste.title || 'Untitled')}">${escapeHtml(paste.title || 'Untitled')}</h1>
+                            
+                            <div class="flex items-center gap-4 text-sm text-vercel-gray flex-wrap">
+                                <span class="flex items-center gap-1.5 text-vercel-light bg-white/10 px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-wide">
+                                    ${paste.syntax}
                                 </span>
                                 <span class="flex items-center gap-1.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    ${visibilityIcon}
+                                    ${visibilityLabel}
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                     ${paste.views} views
                                 </span>
                                 <span class="flex items-center gap-1.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                     ${formatDate(paste.created_at || getCurrentServerTime())}
                                 </span>
                             </div>
@@ -835,38 +867,33 @@
                         ${timerHtml}
                     </div>
 
-                    <!-- Code Area -->
-                    <div class="bg-panel2 md:rounded-xl border-y md:border border-line overflow-hidden relative group">
-                        <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                            <button id="btn-copy-raw" class="bg-panel border border-line text-muted hover:text-white hover:border-softline px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 transition">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    <!-- Code Area (Sleek Mac-like Window without border) -->
+                    <div class="bg-vercel-dark rounded-xl overflow-hidden relative group shadow-2xl">
+                        <!-- Top Bar -->
+                        <div class="h-12 bg-black/40 flex items-center px-4 justify-between">
+                            <div class="flex gap-2">
+                                <div class="w-3 h-3 rounded-full bg-white/10"></div>
+                                <div class="w-3 h-3 rounded-full bg-white/10"></div>
+                                <div class="w-3 h-3 rounded-full bg-white/10"></div>
+                            </div>
+                            <button id="btn-copy-raw" class="text-vercel-gray hover:text-white px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                                 Copy Raw
                             </button>
                         </div>
-                        <div class="overflow-x-auto p-4 md:p-6 text-sm">
-                            <pre><code id="paste-code-block" class="language-${paste.syntax} rounded-lg"></code></pre>
+                        <!-- Code Content -->
+                        <div class="overflow-x-auto p-6 text-[13px] leading-relaxed">
+                            <pre><code id="paste-code-block" class="language-${paste.syntax}"></code></pre>
                         </div>
-                    </div>
-
-                    <!-- Actions Bottom -->
-                    <div class="mt-6 px-4 md:px-0 flex flex-wrap gap-3 pb-8">
-                        <button onclick="navigateTo('/')" class="px-4 py-2 bg-panel border border-line hover:bg-line text-white rounded text-sm transition">
-                            Create New Paste
-                        </button>
-                        <button onclick="navigateTo('/archive')" class="px-4 py-2 bg-panel border border-line hover:bg-line text-white rounded text-sm transition">
-                            Back to Archive
-                        </button>
                     </div>
 
                 </div>
             `;
 
-            // Security: Use textContent to prevent XSS execution
             const codeBlock = document.getElementById('paste-code-block');
             codeBlock.textContent = paste.content;
             hljs.highlightElement(codeBlock);
 
-            // Setup events
             document.getElementById('btn-copy-raw').addEventListener('click', function() {
                 copyText(paste.content, this);
             });
@@ -880,32 +907,31 @@
 
         function renderPrivateUnlock(meta, slug, container) {
             container.innerHTML = `
-                <div class="flex items-center justify-center py-20 px-4">
-                    <div class="bg-panel border border-line rounded-xl p-6 md:p-8 w-full max-w-md shadow-2xl">
-                        <div class="w-16 h-16 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto mb-6">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                        </div>
-                        <h2 class="text-2xl font-bold text-center text-white mb-2">Private Paste</h2>
-                        <p class="text-center text-muted mb-8">This paste is protected. Please enter the password to view its contents.</p>
+                <div class="flex items-center justify-center py-20 px-4 h-full">
+                    <div class="bg-vercel-dark rounded-2xl p-8 md:p-10 w-full max-w-[400px] shadow-2xl relative overflow-hidden ring-1 ring-white/5">
                         
-                        <div class="space-y-4 mb-6">
-                            <div>
-                                <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wider">Password</label>
-                                <div class="relative">
-                                    <input type="password" id="page-unlock-password" placeholder="Enter password..." class="w-full px-4 py-3 bg-panel2 border border-line rounded text-white focus:border-neon pr-10" onkeypress="if(event.key === 'Enter') verifyPageUnlock('${slug}')">
-                                    <button type="button" onclick="togglePasswordVisibility('page-unlock-password', 'eye-icon-page')" class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted hover:text-white">
-                                        <svg id="eye-icon-page" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                    </button>
-                                </div>
+                        <div class="w-14 h-14 rounded-full bg-white/5 text-vercel-light flex items-center justify-center mb-6">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        </div>
+                        
+                        <h2 class="text-2xl font-bold tracking-tight text-white mb-2">Protected Paste</h2>
+                        <p class="text-vercel-gray text-sm mb-8">Enter the password to decrypt and view this snippet.</p>
+                        
+                        <div class="space-y-6 mb-8">
+                            <div class="relative">
+                                <input type="password" id="page-unlock-password" placeholder="Password" class="w-full px-4 py-3 bg-black rounded-md text-white focus:ring-1 focus:ring-white/20 pr-10 transition-all" onkeypress="if(event.key === 'Enter') verifyPageUnlock('${slug}')">
+                                <button type="button" onclick="togglePasswordVisibility('page-unlock-password', 'eye-icon-page')" class="absolute inset-y-0 right-0 flex items-center pr-4 text-vercel-gray hover:text-white transition-colors">
+                                    <svg id="eye-icon-page" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
                             </div>
                         </div>
 
-                        <button id="btn-page-unlock" onclick="verifyPageUnlock('${slug}')" class="w-full py-3 bg-neon text-dark font-bold rounded hover:bg-[#15c561] transition shadow-[0_0_15px_rgba(24,224,111,0.15)]">
-                            Unlock Paste
+                        <button id="btn-page-unlock" onclick="verifyPageUnlock('${slug}')" class="w-full py-3 bg-vercel-light text-vercel-black font-medium rounded-md hover:bg-white transition-colors shadow-glow">
+                            Unlock
                         </button>
                         
                         <div class="mt-6 text-center">
-                            <button onclick="navigateTo('/')" class="text-sm text-muted hover:text-white transition">← Back to Home</button>
+                            <button onclick="navigateTo('/')" class="text-sm text-vercel-gray hover:text-white transition-colors">← Back to Home</button>
                         </div>
                     </div>
                 </div>
@@ -916,9 +942,9 @@
         async function verifyPageUnlock(slug) {
             const pwdInput = document.getElementById('page-unlock-password');
             const password = pwdInput.value;
-            if(!password) return showToast("Password wajib diisi!", "error");
+            if(!password) return showToast("Password is required", "error");
 
-            setLoading('btn-page-unlock', true, "Unlock Paste");
+            setLoading('btn-page-unlock', true, "Unlock");
             try {
                 const res = await fetch(`${API_BASE_URL}/api/pastes/${slug}/verify`, {
                     method: 'POST',
@@ -931,30 +957,30 @@
                     const main = document.getElementById('main-content');
                     renderPasteContent(data.data, main);
                 } else {
-                    showToast(data.message || "Password salah", "error");
+                    showToast(data.message || "Incorrect password", "error");
                     pwdInput.value = '';
                     pwdInput.focus();
                 }
             } catch(e) {
-                showToast("Terjadi kesalahan jaringan", "error");
+                showToast("Network error", "error");
             } finally {
-                setLoading('btn-page-unlock', false, "Unlock Paste");
+                setLoading('btn-page-unlock', false, "Unlock");
             }
         }
 
         function renderExpiredPage(container) {
             container.innerHTML = `
-                <div class="flex items-center justify-center py-20 px-4">
-                    <div class="bg-panel border border-line rounded-xl p-8 max-w-md w-full text-center">
-                        <div class="w-20 h-20 rounded-full bg-line flex items-center justify-center mx-auto mb-6 text-muted">
-                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div class="flex items-center justify-center py-20 px-4 h-full">
+                    <div class="text-center max-w-md w-full">
+                        <div class="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6 text-vercel-gray">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
-                        <h2 class="text-2xl font-bold text-white mb-2">Paste Expired</h2>
-                        <p class="text-muted mb-8">Paste ini sudah melewati batas waktu dan tidak bisa dibuka lagi.</p>
+                        <h2 class="text-3xl font-bold tracking-tight text-white mb-3">Paste Expired</h2>
+                        <p class="text-vercel-gray mb-10 text-lg">This snippet has reached its time limit and is no longer available.</p>
                         
-                        <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                            <button onclick="navigateTo('/')" class="px-6 py-2.5 bg-neon text-dark font-medium rounded hover:bg-[#15c561] transition">New Paste</button>
-                            <button onclick="navigateTo('/archive')" class="px-6 py-2.5 bg-panel2 border border-line text-white font-medium rounded hover:bg-line transition">Archive</button>
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <button onclick="navigateTo('/')" class="px-6 py-3 bg-vercel-light text-vercel-black font-medium rounded-md hover:bg-white transition-colors">Create New</button>
+                            <button onclick="navigateTo('/archive')" class="px-6 py-3 bg-transparent text-white font-medium rounded-md hover:bg-white/5 transition-colors">Go to Archive</button>
                         </div>
                     </div>
                 </div>
@@ -963,12 +989,12 @@
 
         function renderNotFound(container) {
             container.innerHTML = `
-                <div class="flex items-center justify-center py-20 px-4">
+                <div class="flex items-center justify-center py-32 px-4 h-full">
                     <div class="text-center">
-                        <h1 class="text-9xl font-black text-line mb-4">404</h1>
-                        <h2 class="text-2xl font-bold text-white mb-2">Page Not Found</h2>
-                        <p class="text-muted mb-8">The paste or page you are looking for does not exist.</p>
-                        <button onclick="navigateTo('/')" class="px-6 py-2.5 bg-neon text-dark font-medium rounded hover:bg-[#15c561] transition">Go Home</button>
+                        <h1 class="text-[120px] leading-none font-bold tracking-tighter text-white/10 mb-4">404</h1>
+                        <h2 class="text-2xl font-bold tracking-tight text-white mb-3">Page Not Found</h2>
+                        <p class="text-vercel-gray mb-8">The paste or page you are looking for does not exist.</p>
+                        <button onclick="navigateTo('/')" class="px-6 py-2.5 bg-vercel-light text-vercel-black font-medium rounded-md hover:bg-white transition-colors">Return Home</button>
                     </div>
                 </div>
             `;
@@ -976,12 +1002,10 @@
 
         // === INITIALIZE ===
         function initApp() {
-            // First time sync server time (approximate, gets refined on fetch)
             syncServerTime(Date.now());
             renderRoute();
         }
 
-        // Start the app
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
