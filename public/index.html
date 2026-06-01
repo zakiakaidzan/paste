@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,32 +10,22 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Highlight.js (Vercel-like Dark Theme via Github Dark) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <!-- Highlight.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
     <!-- Tailwind CSS Config -->
     <script>
         tailwind = {
-            darkMode: 'class',
             config: {
                 theme: {
                     extend: {
+                        fontFamily: { inter: ["Inter", "sans-serif"] },
                         colors: {
-                            vercel: {
-                                black: "#000000",
-                                dark: "#0A0A0A",
-                                hover: "#141414",
-                                gray: "#888888",
-                                light: "#EDEDED"
+                            glass: {
+                                border: 'rgba(255, 255, 255, 0.15)',
+                                highlight: 'rgba(255, 255, 255, 0.25)',
                             }
-                        },
-                        fontFamily: {
-                            inter: ["Inter", "sans-serif"]
-                        },
-                        boxShadow: {
-                            'glow': '0 0 20px rgba(255, 255, 255, 0.05)',
-                            'glow-lg': '0 0 30px rgba(255, 255, 255, 0.08)'
                         }
                     }
                 }
@@ -48,108 +38,152 @@
 
     <style>
         body {
-            background-color: #000000;
-            color: #EDEDED;
+            background-color: #0b1120;
+            color: #ffffff;
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+        }
+
+        /* Animated Mesh Gradient Background */
+        .bg-mesh {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+            background: #0f172a;
+            overflow: hidden;
+        }
+        .bg-mesh::before, .bg-mesh::after, .bg-mesh-3 {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.5;
+            animation: float 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .bg-mesh::before {
+            width: 50vw; height: 50vw;
+            background: rgba(14, 165, 233, 0.3); /* Sky blue */
+            top: -10%; left: -10%;
+        }
+        .bg-mesh::after {
+            width: 45vw; height: 45vw;
+            background: rgba(139, 92, 246, 0.25); /* Purple */
+            bottom: -10%; right: -5%;
+            animation-delay: -5s;
+        }
+        .bg-mesh-3 {
+            width: 40vw; height: 40vw;
+            background: rgba(16, 185, 129, 0.15); /* Emerald */
+            top: 40%; left: 30%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(5%, 10%) scale(1.1); }
+            100% { transform: translate(-5%, 5%) scale(0.9); }
         }
         
         /* Minimalist Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+        /* Highlight.js Override for Glass */
+        .hljs { background: transparent !important; padding: 0 !important; }
+
+        /* GLASSMORPHISM CORE CLASSES */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.25);
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* Highlight.js Background override for seamless look */
-        .hljs {
-            background: transparent !important;
-            padding: 0 !important;
+        .glass-header {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Form Elements overrides (Borderless SaaS style) */
-        input[type="text"], input[type="password"], select, textarea {
-            background-color: rgba(255, 255, 255, 0.03);
-            border: none;
-            color: #EDEDED;
+        .glass-input {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .glass-input:focus {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: rgba(56, 189, 248, 0.6); /* Cyan glow */
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2), inset 0 2px 4px rgba(0,0,0,0.1);
             outline: none;
-            transition: all 0.2s ease;
-        }
-        input[type="text"]:hover, input[type="password"]:hover, select:hover, textarea:hover {
-            background-color: rgba(255, 255, 255, 0.06);
-        }
-        input[type="text"]:focus, input[type="password"]:focus, select:focus, textarea:focus {
-            background-color: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
         }
 
-        /* Custom Dropdown Arrow */
-        select {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23888888'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 1rem;
-            padding-right: 2.5rem;
+        /* Fix Select Dropdown text color in light OS modes */
+        select option { background-color: #0f172a; color: white; }
+
+        /* Buttons */
+        .btn-glass {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s;
+        }
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #38bdf8, #60a5fa);
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.6);
+            transform: translateY(-1px);
         }
 
-        /* Vercel-like Loader */
+        /* Loader */
         .loader {
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-left-color: #fff;
-            border-radius: 50%;
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-left-color: #fff; border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* Sleek Toast Animation */
-        .toast-enter {
-            transform: translateY(100%) scale(0.95);
-            opacity: 0;
-        }
-        .toast-enter-active {
-            transform: translateY(0) scale(1);
-            opacity: 1;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .toast-exit {
-            transform: translateY(10px) scale(0.95);
-            opacity: 0;
-            transition: all 0.2s ease-in;
-        }
+        /* Animations */
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Modal Animation */
-        .modal-enter { opacity: 0; transform: scale(0.95); }
-        .modal-enter-active { opacity: 1; transform: scale(1); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+        /* Toast */
+        .toast-enter { transform: translateY(100%) scale(0.9); opacity: 0; }
+        .toast-enter-active { transform: translateY(0) scale(1); opacity: 1; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .toast-exit { transform: translateY(10px) scale(0.9); opacity: 0; transition: all 0.3s ease-in; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col selection:bg-white/20 selection:text-white">
+<body class="selection:bg-sky-500/30 selection:text-white">
+
+    <!-- Background Mesh -->
+    <div class="bg-mesh"><div class="bg-mesh-3"></div></div>
 
     <!-- Global App Container -->
-    <div id="app" class="flex flex-col min-h-screen"></div>
+    <div id="app" class="flex flex-col min-h-screen relative z-10"></div>
 
     <!-- Modal Root -->
-    <div id="modal-root"></div>
+    <div id="modal-root" class="relative z-50"></div>
 
-    <!-- Toast Container (Vercel position: bottom-right) -->
-    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 items-end pointer-events-none"></div>
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[60] flex flex-col gap-3 items-end pointer-events-none"></div>
 
     <script>
         // === CONFIGURATION ===
@@ -176,11 +210,8 @@
             if (!timestamp) return "-";
             const date = new Date(timestamp);
             return new Intl.DateTimeFormat('id-ID', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                day: 'numeric', month: 'long', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
             }).format(date).replace(' pukul', ',');
         }
 
@@ -222,13 +253,10 @@
         }
 
         function clearAllCountdowns() {
-            for (let id in activeIntervals) {
-                clearInterval(activeIntervals[id]);
-            }
+            for (let id in activeIntervals) { clearInterval(activeIntervals[id]); }
             activeIntervals = {};
         }
 
-        // === CORE UI UTILS ===
         function escapeHtml(text) {
             if (!text) return "";
             const div = document.createElement('div');
@@ -240,12 +268,11 @@
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             
-            // Vercel style toast: black pill, subtle shadow, left indicator if error
             let icon = type === 'success' 
-                ? `<svg class="w-4 h-4 text-vercel-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`
-                : `<svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+                ? `<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`
+                : `<svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
 
-            toast.className = `toast-enter pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-full shadow-2xl bg-[#111] text-sm text-vercel-light ring-1 ring-white/10`;
+            toast.className = `toast-enter pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl glass-panel text-sm text-white min-w-[280px]`;
             toast.innerHTML = `${icon} <span class="font-medium">${escapeHtml(message)}</span>`;
             
             container.appendChild(toast);
@@ -258,16 +285,16 @@
             setTimeout(() => {
                 toast.classList.remove('toast-enter-active');
                 toast.classList.add('toast-exit');
-                setTimeout(() => toast.remove(), 200);
+                setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
 
         function showModal(htmlContent) {
             const root = document.getElementById('modal-root');
             root.innerHTML = `
-                <div class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
-                    <div class="modal-enter-active relative bg-vercel-dark rounded-xl shadow-[0_0_40px_rgba(0,0,0,0.5)] ring-1 ring-white/10 w-full max-w-[92vw] md:max-w-md overflow-hidden">
+                <div class="fixed inset-0 flex items-center justify-center p-4">
+                    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+                    <div class="fade-in relative glass-panel rounded-2xl w-full max-w-[92vw] md:max-w-md overflow-hidden p-6 md:p-8">
                         ${htmlContent}
                     </div>
                 </div>
@@ -282,9 +309,7 @@
             document.addEventListener('keydown', handleEsc);
         }
 
-        function closeModal() {
-            document.getElementById('modal-root').innerHTML = '';
-        }
+        function closeModal() { document.getElementById('modal-root').innerHTML = ''; }
 
         function copyText(text, buttonElement) {
             navigator.clipboard.writeText(text).then(() => {
@@ -292,11 +317,13 @@
                 if (buttonElement) {
                     const originalText = buttonElement.innerHTML;
                     buttonElement.innerHTML = `<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Copied`;
-                    setTimeout(() => { buttonElement.innerHTML = originalText; }, 2000);
+                    buttonElement.classList.add('text-emerald-400');
+                    setTimeout(() => { 
+                        buttonElement.innerHTML = originalText; 
+                        buttonElement.classList.remove('text-emerald-400');
+                    }, 2000);
                 }
-            }).catch(err => {
-                showToast("Failed to copy", "error");
-            });
+            }).catch(err => { showToast("Failed to copy", "error"); });
         }
 
         function setLoading(btnId, isLoading, originalText = "Submit") {
@@ -304,14 +331,11 @@
             if (!btn) return;
             if (isLoading) {
                 btn.disabled = true;
-                btn.classList.add('opacity-50', 'cursor-not-allowed');
-                // Adjust loader color based on button background (white bg -> dark loader)
-                const isWhiteBtn = btn.classList.contains('bg-vercel-light');
-                const loaderBorder = isWhiteBtn ? 'border-vercel-dark' : 'border-vercel-light';
-                btn.innerHTML = `<div class="flex items-center justify-center"><div class="loader mr-2 ${loaderBorder} !border-l-transparent"></div></div>`;
+                btn.classList.add('opacity-70', 'cursor-not-allowed');
+                btn.innerHTML = `<div class="flex items-center justify-center gap-2"><div class="loader"></div> Saving...</div>`;
             } else {
                 btn.disabled = false;
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.classList.remove('opacity-70', 'cursor-not-allowed');
                 btn.innerHTML = originalText;
             }
         }
@@ -341,8 +365,7 @@
             const path = window.location.pathname;
             const app = document.getElementById('app');
             
-            // Render basic layout header first
-            app.innerHTML = renderHeader() + `<main id="main-content" class="flex-1 w-full max-w-5xl mx-auto px-4 md:px-8 py-8"></main>`;
+            app.innerHTML = renderHeader() + `<main id="main-content" class="flex-1 w-full max-w-[1400px] mx-auto p-4 md:p-8 fade-in"></main>`;
             const main = document.getElementById('main-content');
 
             if (path === "/" || path === "") {
@@ -369,17 +392,18 @@
             const isArchive = currentPath === '/archive';
             
             return `
-                <header class="sticky top-0 z-40 bg-vercel-black/70 backdrop-blur-lg border-b border-white/5">
-                    <div class="max-w-5xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-                        <a href="/" onclick="event.preventDefault(); navigateTo('/')" class="flex items-center gap-3 text-lg font-semibold tracking-tight text-vercel-light hover:opacity-80 transition-opacity">
-                            <div class="w-7 h-7 bg-white text-black flex items-center justify-center rounded-md">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <header class="glass-header sticky top-0 z-40">
+                    <div class="max-w-[1400px] mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
+                        <a href="/" onclick="event.preventDefault(); navigateTo('/')" class="flex items-center gap-3 text-lg font-bold tracking-tight text-white hover:opacity-80 transition-opacity">
+                            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                             </div>
                             Pasteview
                         </a>
-                        <nav class="flex items-center gap-6 text-sm font-medium">
-                            <a href="/" onclick="event.preventDefault(); navigateTo('/')" class="${isHome ? 'text-white' : 'text-vercel-gray hover:text-white'} transition-colors hidden md:block">Create</a>
-                            <a href="/archive" onclick="event.preventDefault(); navigateTo('/archive')" class="${isArchive ? 'text-white' : 'text-vercel-gray hover:text-white'} transition-colors flex items-center gap-2">
+                        <nav class="flex items-center gap-2 md:gap-4 text-sm font-medium">
+                            <a href="/" onclick="event.preventDefault(); navigateTo('/')" class="px-4 py-2 rounded-lg transition-all ${isHome ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white'} hidden md:block">New Paste</a>
+                            <a href="/archive" onclick="event.preventDefault(); navigateTo('/archive')" class="px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${isArchive ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white'}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
                                 Archive
                             </a>
                         </nav>
@@ -391,96 +415,114 @@
         // === VIEW: NEW PASTE ===
         function getNewPasteHTML() {
             return `
-                <div class="flex flex-col md:flex-row gap-8 lg:gap-12 h-full">
+                <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 h-full">
                     
-                    <!-- Sidebar Form (No Borders, Minimalist) -->
-                    <div class="w-full md:w-72 shrink-0 space-y-6 flex flex-col order-2 md:order-1 mb-10 md:mb-0">
-                        <div class="hidden md:block mb-2">
-                            <h2 class="text-xl font-semibold tracking-tight text-vercel-light">Settings</h2>
-                            <p class="text-sm text-vercel-gray mt-1">Configure your paste options.</p>
-                        </div>
-                        
-                        <div class="space-y-5">
-                            <div>
-                                <label class="block text-sm font-medium text-vercel-gray mb-2">Title</label>
-                                <input type="text" id="p-title" placeholder="Optional title..." class="w-full px-3 py-2.5 rounded-md text-sm">
+                    <!-- Sidebar Form -->
+                    <div class="w-full lg:w-[360px] shrink-0 order-2 lg:order-1">
+                        <div class="glass-panel rounded-2xl p-6 flex flex-col gap-5 sticky top-24">
+                            <div class="mb-2 hidden lg:block">
+                                <h2 class="text-xl font-bold tracking-tight text-white">Settings</h2>
+                                <p class="text-sm text-slate-400 mt-1">Configure visibility & formatting.</p>
                             </div>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-2 tracking-wide">TITLE (OPTIONAL)</label>
+                                    <input type="text" id="p-title" placeholder="e.g. Database Config" class="glass-input w-full px-4 py-2.5 rounded-xl text-sm">
+                                </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-vercel-gray mb-2">Language</label>
-                                <select id="p-syntax" class="w-full px-3 py-2.5 rounded-md text-sm cursor-pointer">
-                                    <option value="text">Plain Text</option>
-                                    <option value="javascript">JavaScript</option>
-                                    <option value="html">HTML</option>
-                                    <option value="css">CSS</option>
-                                    <option value="json">JSON</option>
-                                    <option value="php">PHP</option>
-                                    <option value="sql">SQL</option>
-                                    <option value="java">Java</option>
-                                    <option value="python">Python</option>
-                                    <option value="markdown">Markdown</option>
-                                    <option value="bash">Bash</option>
-                                    <option value="typescript">TypeScript</option>
-                                    <option value="xml">XML</option>
-                                    <option value="cpp">C++</option>
-                                    <option value="go">Go</option>
-                                    <option value="rust">Rust</option>
-                                </select>
-                            </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-2 tracking-wide">SYNTAX</label>
+                                    <div class="relative">
+                                        <select id="p-syntax" class="glass-input w-full px-4 py-2.5 rounded-xl text-sm appearance-none cursor-pointer">
+                                            <option value="text">Plain Text</option>
+                                            <option value="javascript">JavaScript</option>
+                                            <option value="html">HTML</option>
+                                            <option value="css">CSS</option>
+                                            <option value="json">JSON</option>
+                                            <option value="php">PHP</option>
+                                            <option value="sql">SQL</option>
+                                            <option value="java">Java</option>
+                                            <option value="python">Python</option>
+                                            <option value="markdown">Markdown</option>
+                                            <option value="bash">Bash</option>
+                                            <option value="typescript">TypeScript</option>
+                                            <option value="xml">XML</option>
+                                            <option value="cpp">C++</option>
+                                            <option value="go">Go</option>
+                                            <option value="rust">Rust</option>
+                                        </select>
+                                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </div>
+                                    </div>
+                                </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-vercel-gray mb-2">Visibility</label>
-                                <select id="p-visibility" class="w-full px-3 py-2.5 rounded-md text-sm cursor-pointer">
-                                    <option value="public">Public</option>
-                                    <option value="unlisted">Unlisted</option>
-                                    <option value="private">Private (Password)</option>
-                                </select>
-                            </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-2 tracking-wide">VISIBILITY</label>
+                                    <div class="relative">
+                                        <select id="p-visibility" class="glass-input w-full px-4 py-2.5 rounded-xl text-sm appearance-none cursor-pointer">
+                                            <option value="public">Public</option>
+                                            <option value="unlisted">Unlisted</option>
+                                            <option value="private">Private (Password)</option>
+                                        </select>
+                                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </div>
+                                    </div>
+                                </div>
 
-                            <div id="password-wrapper" class="hidden">
-                                <label class="block text-sm font-medium text-vercel-gray mb-2">Password</label>
-                                <div class="relative">
-                                    <input type="password" id="p-password" placeholder="Min 4 characters" class="w-full px-3 py-2.5 rounded-md text-sm pr-10">
-                                    <button type="button" onclick="togglePasswordVisibility('p-password', 'eye-icon-new')" class="absolute inset-y-0 right-0 flex items-center pr-3 text-vercel-gray hover:text-white transition-colors">
-                                        <svg id="eye-icon-new" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                    </button>
+                                <div id="password-wrapper" class="hidden">
+                                    <label class="block text-xs font-semibold text-slate-300 mb-2 tracking-wide">PASSWORD</label>
+                                    <div class="relative">
+                                        <input type="password" id="p-password" placeholder="Min 4 characters" class="glass-input w-full px-4 py-2.5 rounded-xl text-sm pr-10">
+                                        <button type="button" onclick="togglePasswordVisibility('p-password', 'eye-icon-new')" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-white transition-colors">
+                                            <svg id="eye-icon-new" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-2 tracking-wide">EXPIRATION</label>
+                                    <div class="relative">
+                                        <select id="p-expiration" class="glass-input w-full px-4 py-2.5 rounded-xl text-sm appearance-none cursor-pointer">
+                                            <option value="never">No Expiration</option>
+                                            <option value="5m">5 Minutes</option>
+                                            <option value="10m">10 Minutes</option>
+                                            <option value="30m">30 Minutes</option>
+                                            <option value="1h">1 Hour</option>
+                                            <option value="6h">6 Hours</option>
+                                            <option value="1d">1 Day</option>
+                                            <option value="7d">7 Days</option>
+                                        </select>
+                                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-vercel-gray mb-2">Expiration</label>
-                                <select id="p-expiration" class="w-full px-3 py-2.5 rounded-md text-sm cursor-pointer">
-                                    <option value="never">No Expiration</option>
-                                    <option value="5m">5 Minutes</option>
-                                    <option value="10m">10 Minutes</option>
-                                    <option value="30m">30 Minutes</option>
-                                    <option value="1h">1 Hour</option>
-                                    <option value="6h">6 Hours</option>
-                                    <option value="1d">1 Day</option>
-                                    <option value="7d">7 Days</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="pt-4 mt-auto">
-                            <button id="btn-submit-paste" class="w-full bg-vercel-light text-vercel-black font-medium py-2.5 rounded-md hover:bg-white transition-colors shadow-glow">
+                            <button id="btn-submit-paste" class="btn-primary w-full py-3 rounded-xl mt-4 font-bold tracking-wide">
                                 Create Paste
                             </button>
                         </div>
                     </div>
 
-                    <!-- Editor Area (Glassy/Sleek Panel) -->
-                    <div class="flex-1 flex flex-col order-1 md:order-2">
-                        <div class="flex items-center justify-between mb-4">
-                            <h1 class="text-2xl font-bold tracking-tight text-white md:hidden">New Paste</h1>
-                            <div class="flex items-center gap-4 text-xs font-medium text-vercel-gray ml-auto">
-                                <span id="char-count">0 Chars</span>
-                                <button onclick="document.getElementById('p-content').value=''; document.getElementById('char-count').textContent='0 Chars';" class="hover:text-white transition-colors">Clear</button>
+                    <!-- Editor Area -->
+                    <div class="flex-1 flex flex-col order-1 lg:order-2 min-h-[500px]">
+                        <div class="glass-panel rounded-2xl flex-1 flex flex-col overflow-hidden">
+                            <div class="h-12 border-b border-white/10 bg-black/20 flex items-center px-4 justify-between">
+                                <div class="flex gap-2">
+                                    <div class="w-3 h-3 rounded-full bg-rose-500/80"></div>
+                                    <div class="w-3 h-3 rounded-full bg-amber-500/80"></div>
+                                    <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+                                </div>
+                                <div class="flex items-center gap-4 text-xs font-medium text-slate-400">
+                                    <span id="char-count">0 Chars</span>
+                                    <button onclick="document.getElementById('p-content').value=''; document.getElementById('char-count').textContent='0 Chars';" class="hover:text-white transition-colors">Clear</button>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="flex-1 flex flex-col bg-vercel-dark rounded-xl relative group focus-within:ring-1 focus-within:ring-white/20 transition-all">
-                            <textarea id="p-content" class="w-full flex-1 min-h-[400px] md:min-h-[600px] bg-transparent text-vercel-light p-5 font-mono text-[13px] leading-relaxed resize-none focus:outline-none !shadow-none !ring-0" placeholder="Type or paste your code here..." spellcheck="false"></textarea>
+                            <textarea id="p-content" class="w-full flex-1 bg-transparent text-slate-100 p-6 font-mono text-sm leading-relaxed resize-none focus:outline-none" placeholder="Paste your code here..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -516,24 +558,17 @@
                 const content = document.getElementById('p-content').value;
                 const password = document.getElementById('p-password').value;
 
-                if (!content) {
-                    return showToast("Content cannot be empty", "error");
-                }
-                if (visibility === 'private' && password.length < 4) {
-                    return showToast("Password must be at least 4 characters", "error");
-                }
+                if (!content) { return showToast("Content cannot be empty", "error"); }
+                if (visibility === 'private' && password.length < 4) { return showToast("Password must be at least 4 characters", "error"); }
 
                 setLoading('btn-submit-paste', true, "Create Paste");
 
                 const payload = { title, syntax, visibility, expiration, content };
-                if (visibility === 'private') {
-                    payload.password = password;
-                }
+                if (visibility === 'private') { payload.password = password; }
 
                 try {
                     const res = await fetch(`${API_BASE_URL}/api/pastes`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
                     const data = await res.json();
@@ -541,14 +576,9 @@
                     if (data.success) {
                         syncServerTime(data.server_time);
                         showSuccessModal(data.data);
-                    } else {
-                        showToast(data.message || "Failed to create paste", "error");
-                    }
-                } catch (error) {
-                    showToast("Network error occurred", "error");
-                } finally {
-                    setLoading('btn-submit-paste', false, "Create Paste");
-                }
+                    } else { showToast(data.message || "Failed to create paste", "error"); }
+                } catch (error) { showToast("Network error occurred", "error"); } 
+                finally { setLoading('btn-submit-paste', false, "Create Paste"); }
             });
         }
 
@@ -558,9 +588,9 @@
             let warningHtml = '';
             if (pasteData.visibility === 'private') {
                 warningHtml = `
-                    <div class="bg-white/5 border border-white/10 text-vercel-light text-sm p-4 rounded-lg mb-6 flex gap-3 items-start">
-                        <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                        <p class="leading-relaxed">This paste is private. Save your password, it's required to unlock this paste later.</p>
+                    <div class="bg-rose-500/10 border border-rose-500/20 text-rose-200 text-sm p-4 rounded-xl mb-6 flex gap-3 items-start shadow-inner">
+                        <svg class="w-5 h-5 shrink-0 mt-0.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        <p class="leading-relaxed">This paste is private. <strong>Save your password</strong>, it's required to unlock this paste later.</p>
                     </div>
                 `;
             }
@@ -568,38 +598,38 @@
             let expireHtml = '';
             if (pasteData.expires_at) {
                 expireHtml = `
-                    <p class="text-sm text-vercel-gray mb-6 text-center">
-                        Expires in: <span id="modal-countdown-${pasteData.slug}" class="text-vercel-light font-mono font-medium">--:--</span>
+                    <p class="text-sm text-slate-300 mb-6 text-center bg-black/20 p-2 rounded-lg border border-white/5">
+                        Expires in: <span id="modal-countdown-${pasteData.slug}" class="text-sky-400 font-mono font-bold tracking-wide">--:--</span>
                     </p>
                 `;
             }
 
             showModal(`
-                <div class="p-8">
-                    <div class="w-12 h-12 rounded-full bg-white/10 text-white flex items-center justify-center mx-auto mb-5 ring-1 ring-white/20">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white flex items-center justify-center mb-5 shadow-lg shadow-emerald-500/20 border border-white/20">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
                     </div>
-                    <h3 class="text-xl font-bold tracking-tight text-center text-white mb-2">Paste Created</h3>
-                    <p class="text-center text-sm text-vercel-gray mb-6">Your snippet is ready to be shared.</p>
-                    
-                    ${warningHtml}
-                    ${expireHtml}
+                    <h3 class="text-2xl font-bold tracking-tight text-white mb-2">Success!</h3>
+                    <p class="text-sm text-slate-400 mb-6">Your snippet is ready to be shared.</p>
+                </div>
+                
+                ${warningHtml}
+                ${expireHtml}
 
-                    <div class="flex items-center gap-2 mb-8 bg-black rounded-md p-1 ring-1 ring-white/10">
-                        <input type="text" readonly value="${url}" class="flex-1 bg-transparent text-vercel-gray text-sm px-3 py-2 focus:outline-none !shadow-none !ring-0">
-                        <button onclick="copyText('${url}', this)" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center">
-                            Copy
-                        </button>
-                    </div>
+                <div class="flex items-center gap-2 mb-8 glass-input rounded-xl p-1">
+                    <input type="text" readonly value="${url}" class="flex-1 bg-transparent text-slate-200 text-sm px-3 py-2 focus:outline-none truncate">
+                    <button onclick="copyText('${url}', this)" class="btn-glass hover:bg-white/10 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center">
+                        Copy
+                    </button>
+                </div>
 
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <button onclick="closeModal(); document.getElementById('p-content').value=''; document.getElementById('p-title').value='';" class="flex-1 px-4 py-2.5 rounded-md text-sm font-medium bg-transparent text-vercel-light hover:bg-white/5 transition-colors">
-                            Create Another
-                        </button>
-                        <button onclick="closeModal(); navigateTo('/p/${pasteData.slug}')" class="flex-1 px-4 py-2.5 rounded-md text-sm font-medium bg-vercel-light text-vercel-black hover:bg-white transition-colors shadow-glow">
-                            Open Paste
-                        </button>
-                    </div>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button onclick="closeModal(); document.getElementById('p-content').value=''; document.getElementById('p-title').value='';" class="flex-1 px-4 py-3 rounded-xl text-sm font-medium btn-glass text-white">
+                        Create Another
+                    </button>
+                    <button onclick="closeModal(); navigateTo('/p/${pasteData.slug}')" class="flex-1 px-4 py-3 rounded-xl text-sm font-medium btn-primary text-white">
+                        Open Paste
+                    </button>
                 </div>
             `);
 
@@ -614,18 +644,18 @@
                 <div class="w-full">
                     <div class="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                         <div>
-                            <h1 class="text-3xl font-bold tracking-tight text-white">Archive</h1>
-                            <p class="text-vercel-gray text-sm mt-2">Recently shared public and protected snippets.</p>
+                            <h1 class="text-3xl font-bold tracking-tight text-white mb-2">Public Archive</h1>
+                            <p class="text-slate-400 text-sm">Recently shared public and protected snippets.</p>
                         </div>
-                        <button onclick="fetchArchive(1)" class="text-sm font-medium flex items-center gap-2 px-4 py-2 rounded-md bg-white/5 hover:bg-white/10 transition-colors text-white w-fit">
+                        <button onclick="fetchArchive(1)" class="btn-glass px-5 py-2.5 rounded-xl text-sm font-medium text-white flex items-center gap-2 w-fit">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                             Refresh
                         </button>
                     </div>
                     
-                    <div id="archive-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <div id="archive-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                         <div class="col-span-full py-20 flex justify-center">
-                            <div class="loader"></div>
+                            <div class="loader w-8 h-8"></div>
                         </div>
                     </div>
                 </div>
@@ -644,10 +674,10 @@
                     syncServerTime(data.server_time);
                     renderArchiveCards(data.data);
                 } else {
-                    listEl.innerHTML = `<div class="col-span-full text-center text-red-400 py-8">${escapeHtml(data.message)}</div>`;
+                    listEl.innerHTML = `<div class="col-span-full text-center text-rose-400 py-8">${escapeHtml(data.message)}</div>`;
                 }
             } catch (error) {
-                listEl.innerHTML = `<div class="col-span-full text-center text-vercel-gray py-8">Failed to load archive.</div>`;
+                listEl.innerHTML = `<div class="col-span-full text-center text-slate-400 py-8">Failed to load archive.</div>`;
             }
         }
 
@@ -655,12 +685,12 @@
             const listEl = document.getElementById('archive-list');
             if (!pastes || pastes.length === 0) {
                 listEl.innerHTML = `
-                    <div class="col-span-full flex flex-col items-center justify-center py-20 text-center bg-vercel-dark rounded-xl">
-                        <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-vercel-gray mb-4">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                    <div class="col-span-full glass-panel rounded-2xl flex flex-col items-center justify-center py-24 text-center">
+                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-slate-400 mb-5 border border-white/10">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
                         </div>
-                        <h3 class="text-lg font-medium text-white mb-1">No snippets found</h3>
-                        <p class="text-vercel-gray text-sm">The archive is currently empty.</p>
+                        <h3 class="text-xl font-bold text-white mb-2">No snippets found</h3>
+                        <p class="text-slate-400 text-sm">The archive is currently empty.</p>
                     </div>`;
                 return;
             }
@@ -672,47 +702,51 @@
                 const isExpired = paste.expires_at && (paste.expires_at - getCurrentServerTime() <= 0);
                 
                 const card = document.createElement('div');
-                // Vercel style card: solid subtle dark bg, hover state, no harsh border
-                card.className = "bg-vercel-dark p-6 rounded-xl flex flex-col h-full relative group hover:bg-vercel-hover transition-colors";
+                card.className = "glass-panel rounded-2xl p-6 flex flex-col h-full relative group transition-all duration-300 hover:border-sky-400/30 hover:shadow-sky-500/10 hover:-translate-y-1";
                 
-                let visibilityIcon = isPrivate 
-                    ? `<svg class="w-4 h-4 text-vercel-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>` 
-                    : `<svg class="w-4 h-4 text-vercel-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+                let visibilityBadge = isPrivate 
+                    ? `<span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] uppercase tracking-wider px-2 py-1 rounded-md font-bold flex items-center gap-1 backdrop-blur-md"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Private</span>` 
+                    : `<span class="bg-sky-500/20 text-sky-300 border border-sky-500/30 text-[10px] uppercase tracking-wider px-2 py-1 rounded-md font-bold flex items-center gap-1 backdrop-blur-md"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Public</span>`;
 
                 let timeInfo = '';
                 if (paste.expires_at) {
-                    timeInfo = `<div class="mt-5 pt-4 border-t border-white/5 text-[13px] flex justify-between items-center text-vercel-gray">
+                    timeInfo = `<div class="mt-auto pt-4 border-t border-white/10 text-[13px] flex justify-between items-center text-slate-400">
                         <span>Expires in</span>
-                        <span id="card-timer-${paste.slug}" class="font-mono font-medium ${isExpired ? 'text-red-400' : 'text-vercel-light'}">--:--</span>
+                        <span id="card-timer-${paste.slug}" class="font-mono font-medium ${isExpired ? 'text-rose-400' : 'text-emerald-400'}">--:--</span>
                     </div>`;
+                } else {
+                    timeInfo = `<div class="mt-auto pt-4"></div>`; // filler
                 }
 
                 let actionButton = '';
                 if (isExpired) {
-                     actionButton = `<button disabled class="w-full mt-4 py-2 bg-white/5 text-vercel-gray rounded-md text-sm font-medium cursor-not-allowed">Expired</button>`;
+                     actionButton = `<button disabled class="w-full mt-4 py-2.5 bg-black/30 border border-white/5 text-slate-500 rounded-xl text-sm font-semibold cursor-not-allowed">Expired</button>`;
                 } else if (isPrivate) {
-                     actionButton = `<button onclick='openArchivePrivateModal(${JSON.stringify(paste).replace(/'/g, "&apos;")})' class="w-full mt-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2">Unlock Paste</button>`;
+                     actionButton = `<button onclick='openArchivePrivateModal(${JSON.stringify(paste).replace(/'/g, "&apos;")})' class="w-full mt-4 py-2.5 btn-glass text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2">Unlock Paste</button>`;
                 } else {
-                     actionButton = `<button onclick="navigateTo('/p/${paste.slug}')" class="w-full mt-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-md text-sm font-medium transition-colors">View Paste</button>`;
+                     actionButton = `<button onclick="navigateTo('/p/${paste.slug}')" class="w-full mt-4 py-2.5 bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/30 text-sky-200 rounded-xl text-sm font-semibold transition-colors">View Paste</button>`;
                 }
 
                 card.innerHTML = `
-                    <div class="flex-1">
-                        <div class="flex justify-between items-start mb-3 gap-2">
-                            <h3 class="font-semibold text-white text-base truncate flex-1" title="${escapeHtml(paste.title || 'Untitled')}">${escapeHtml(paste.title || 'Untitled')}</h3>
-                            <div class="shrink-0 pt-0.5" title="${isPrivate ? 'Private' : 'Public'}">${visibilityIcon}</div>
+                    <div class="flex flex-col flex-1">
+                        <div class="flex justify-between items-start mb-4 gap-3">
+                            <h3 class="font-bold text-white text-lg truncate flex-1" title="${escapeHtml(paste.title || 'Untitled')}">${escapeHtml(paste.title || 'Untitled')}</h3>
+                            <div class="shrink-0">${visibilityBadge}</div>
                         </div>
-                        <div class="flex flex-wrap items-center gap-3 text-[13px] text-vercel-gray mb-1">
-                            <span class="capitalize">${paste.syntax || 'text'}</span>
-                            <span class="w-1 h-1 rounded-full bg-vercel-gray/50"></span>
-                            <span class="flex items-center gap-1">${paste.views || 0} views</span>
+                        
+                        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-300 mb-4 font-medium">
+                            <span class="bg-black/30 border border-white/10 px-2.5 py-1 rounded-md uppercase tracking-wider">${paste.syntax || 'text'}</span>
+                            <span class="flex items-center gap-1.5 opacity-80"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> ${paste.views || 0}</span>
                         </div>
-                        <div class="text-[12px] text-vercel-gray/70 mt-3">
+                        
+                        <div class="text-[12px] text-slate-400/80 mb-2">
                             ${formatDate(paste.created_at)}
                         </div>
+                        
+                        ${timeInfo}
                     </div>
-                    ${timeInfo}
-                    <div class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                    
+                    <div class="mt-2 opacity-100 xl:opacity-0 xl:group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300">
                         ${actionButton}
                     </div>
                 `;
@@ -726,27 +760,27 @@
 
         function openArchivePrivateModal(paste) {
             showModal(`
-                <div class="p-8">
-                    <div class="mb-6">
-                        <h3 class="text-xl font-bold tracking-tight text-white mb-2 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-vercel-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                            Protected Paste
-                        </h3>
-                        <p class="text-sm text-vercel-gray">"${escapeHtml(paste.title || 'Untitled')}" requires a password to view.</p>
+                <div>
+                    <div class="mb-8">
+                        <div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mb-4 border border-rose-500/30">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        </div>
+                        <h3 class="text-2xl font-bold tracking-tight text-white mb-2">Protected Paste</h3>
+                        <p class="text-sm text-slate-400">"${escapeHtml(paste.title || 'Untitled')}" requires a password to view.</p>
                     </div>
                     
-                    <div class="space-y-4 mb-8">
+                    <div class="space-y-5 mb-8">
                         <div class="relative">
-                            <input type="password" id="modal-unlock-password" placeholder="Enter password" class="w-full px-4 py-3 bg-black rounded-md text-white pr-10" onkeypress="if(event.key === 'Enter') verifyArchiveUnlock('${paste.slug}')">
-                            <button type="button" onclick="togglePasswordVisibility('modal-unlock-password', 'eye-icon-modal')" class="absolute inset-y-0 right-0 flex items-center pr-4 text-vercel-gray hover:text-white transition-colors">
-                                <svg id="eye-icon-modal" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <input type="password" id="modal-unlock-password" placeholder="Enter password..." class="glass-input w-full px-4 py-3 rounded-xl text-white pr-10" onkeypress="if(event.key === 'Enter') verifyArchiveUnlock('${paste.slug}')">
+                            <button type="button" onclick="togglePasswordVisibility('modal-unlock-password', 'eye-icon-modal')" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-white transition-colors">
+                                <svg id="eye-icon-modal" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                             </button>
                         </div>
                     </div>
 
                     <div class="flex gap-3 justify-end">
-                        <button onclick="closeModal()" class="px-5 py-2.5 rounded-md text-sm font-medium text-vercel-light hover:bg-white/5 transition-colors">Cancel</button>
-                        <button id="btn-modal-unlock" onclick="verifyArchiveUnlock('${paste.slug}')" class="px-5 py-2.5 rounded-md text-sm font-medium bg-vercel-light text-vercel-black hover:bg-white transition-colors">Unlock</button>
+                        <button onclick="closeModal()" class="px-5 py-2.5 rounded-xl text-sm font-semibold btn-glass text-white">Cancel</button>
+                        <button id="btn-modal-unlock" onclick="verifyArchiveUnlock('${paste.slug}')" class="px-5 py-2.5 rounded-xl text-sm font-semibold btn-primary text-white">Unlock</button>
                     </div>
                 </div>
             `);
@@ -761,8 +795,7 @@
             setLoading('btn-modal-unlock', true, "Unlock");
             try {
                 const res = await fetch(`${API_BASE_URL}/api/pastes/${slug}/verify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password })
                 });
                 const data = await res.json();
@@ -773,20 +806,16 @@
                     navigateTo(`/p/${slug}`);
                 } else {
                     showToast(data.message || "Incorrect password", "error");
-                    pwdInput.value = '';
-                    pwdInput.focus();
+                    pwdInput.value = ''; pwdInput.focus();
                 }
-            } catch(e) {
-                showToast("Network error", "error");
-            } finally {
-                setLoading('btn-modal-unlock', false, "Unlock");
-            }
+            } catch(e) { showToast("Network error", "error"); } 
+            finally { setLoading('btn-modal-unlock', false, "Unlock"); }
         }
 
         // === VIEW: PASTE DETAIL ===
         async function renderPasteDetail(slug) {
             const main = document.getElementById('main-content');
-            main.innerHTML = `<div class="flex justify-center py-32"><div class="loader w-8 h-8 border-[3px]"></div></div>`;
+            main.innerHTML = `<div class="flex justify-center py-32"><div class="loader w-10 h-10 border-[3px]"></div></div>`;
 
             if (window.__unlockedPaste && window.__unlockedPaste.slug === slug) {
                 const pasteData = window.__unlockedPaste;
@@ -801,18 +830,11 @@
                 
                 syncServerTime(data.server_time);
 
-                if (data.success) {
-                    renderPasteContent(data.data, main);
-                } else if (data.private) {
-                    renderPrivateUnlock(data.data, slug, main);
-                } else if (data.expired) {
-                    renderExpiredPage(main);
-                } else {
-                    renderNotFound(main);
-                }
-            } catch(e) {
-                main.innerHTML = `<div class="text-center py-20 text-red-400">Failed to load snippet. Check your connection.</div>`;
-            }
+                if (data.success) { renderPasteContent(data.data, main); } 
+                else if (data.private) { renderPrivateUnlock(data.data, slug, main); } 
+                else if (data.expired) { renderExpiredPage(main); } 
+                else { renderNotFound(main); }
+            } catch(e) { main.innerHTML = `<div class="text-center py-20 text-rose-400 font-medium">Failed to load snippet. Check your connection.</div>`; }
         }
 
         function renderPasteContent(paste, container) {
@@ -823,17 +845,16 @@
             }
 
             const isPrivate = paste.visibility === 'private';
-            let visibilityLabel = isPrivate ? 'Private' : 'Public';
-            let visibilityIcon = isPrivate 
-                ? `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>`
-                : `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            let visibilityBadge = isPrivate 
+                ? `<span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs uppercase tracking-wider px-2.5 py-1 rounded-md font-bold flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Private</span>`
+                : `<span class="bg-sky-500/20 text-sky-300 border border-sky-500/30 text-xs uppercase tracking-wider px-2.5 py-1 rounded-md font-bold flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Public</span>`;
 
             let timerHtml = '';
             if (paste.expires_at) {
                 timerHtml = `
-                    <div class="flex items-center gap-2 text-sm bg-vercel-dark px-3 py-1.5 rounded-full text-vercel-gray ring-1 ring-white/5">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span id="detail-timer-${paste.slug}" class="font-mono text-vercel-light font-medium ml-1">--:--</span>
+                    <div class="flex items-center gap-2 text-sm bg-black/30 px-4 py-2 rounded-xl text-slate-300 border border-white/10 shadow-inner">
+                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Expires in: <span id="detail-timer-${paste.slug}" class="font-mono text-emerald-400 font-bold ml-1">--:--</span>
                     </div>
                 `;
             }
@@ -842,24 +863,19 @@
                 <div class="w-full">
                     
                     <!-- Detail Header -->
-                    <div class="mb-8 flex flex-col md:flex-row md:items-start justify-between gap-4">
+                    <div class="mb-8 flex flex-col md:flex-row md:items-start justify-between gap-6">
                         <div class="flex-1 min-w-0">
-                            <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-white truncate mb-4" title="${escapeHtml(paste.title || 'Untitled')}">${escapeHtml(paste.title || 'Untitled')}</h1>
+                            <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-white mb-4" style="word-break: break-word;">${escapeHtml(paste.title || 'Untitled')}</h1>
                             
-                            <div class="flex items-center gap-4 text-sm text-vercel-gray flex-wrap">
-                                <span class="flex items-center gap-1.5 text-vercel-light bg-white/10 px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-wide">
-                                    ${paste.syntax}
-                                </span>
-                                <span class="flex items-center gap-1.5">
-                                    ${visibilityIcon}
-                                    ${visibilityLabel}
-                                </span>
-                                <span class="flex items-center gap-1.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            <div class="flex items-center gap-4 text-sm text-slate-300 flex-wrap font-medium">
+                                ${visibilityBadge}
+                                <span class="bg-black/30 border border-white/10 px-3 py-1 rounded-md uppercase tracking-wider text-xs">${paste.syntax}</span>
+                                <span class="flex items-center gap-1.5 opacity-80">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                     ${paste.views} views
                                 </span>
-                                <span class="flex items-center gap-1.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span class="flex items-center gap-1.5 opacity-80">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                     ${formatDate(paste.created_at || getCurrentServerTime())}
                                 </span>
                             </div>
@@ -867,22 +883,22 @@
                         ${timerHtml}
                     </div>
 
-                    <!-- Code Area (Sleek Mac-like Window without border) -->
-                    <div class="bg-vercel-dark rounded-xl overflow-hidden relative group shadow-2xl">
-                        <!-- Top Bar -->
-                        <div class="h-12 bg-black/40 flex items-center px-4 justify-between">
-                            <div class="flex gap-2">
-                                <div class="w-3 h-3 rounded-full bg-white/10"></div>
-                                <div class="w-3 h-3 rounded-full bg-white/10"></div>
-                                <div class="w-3 h-3 rounded-full bg-white/10"></div>
+                    <!-- Code Area (Glass Window) -->
+                    <div class="glass-panel rounded-2xl overflow-hidden relative group">
+                        <!-- Mac-like Top Bar -->
+                        <div class="h-14 bg-black/40 border-b border-white/10 flex items-center px-5 justify-between">
+                            <div class="flex gap-2.5">
+                                <div class="w-3.5 h-3.5 rounded-full bg-rose-500 shadow-sm border border-rose-600/50"></div>
+                                <div class="w-3.5 h-3.5 rounded-full bg-amber-500 shadow-sm border border-amber-600/50"></div>
+                                <div class="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm border border-emerald-600/50"></div>
                             </div>
-                            <button id="btn-copy-raw" class="text-vercel-gray hover:text-white px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            <button id="btn-copy-raw" class="btn-glass px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-white">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                                 Copy Raw
                             </button>
                         </div>
                         <!-- Code Content -->
-                        <div class="overflow-x-auto p-6 text-[13px] leading-relaxed">
+                        <div class="overflow-x-auto p-6 md:p-8 text-sm leading-relaxed bg-[#0f111a]/80">
                             <pre><code id="paste-code-block" class="language-${paste.syntax}"></code></pre>
                         </div>
                     </div>
@@ -908,30 +924,30 @@
         function renderPrivateUnlock(meta, slug, container) {
             container.innerHTML = `
                 <div class="flex items-center justify-center py-20 px-4 h-full">
-                    <div class="bg-vercel-dark rounded-2xl p-8 md:p-10 w-full max-w-[400px] shadow-2xl relative overflow-hidden ring-1 ring-white/5">
+                    <div class="glass-panel rounded-3xl p-8 md:p-12 w-full max-w-[440px] relative overflow-hidden">
                         
-                        <div class="w-14 h-14 rounded-full bg-white/5 text-vercel-light flex items-center justify-center mb-6">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        <div class="w-16 h-16 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-6 border border-rose-500/30">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                         </div>
                         
-                        <h2 class="text-2xl font-bold tracking-tight text-white mb-2">Protected Paste</h2>
-                        <p class="text-vercel-gray text-sm mb-8">Enter the password to decrypt and view this snippet.</p>
+                        <h2 class="text-3xl font-bold tracking-tight text-center text-white mb-3">Protected Paste</h2>
+                        <p class="text-slate-400 text-sm text-center mb-10 leading-relaxed">Enter the password to decrypt and view this snippet securely.</p>
                         
                         <div class="space-y-6 mb-8">
                             <div class="relative">
-                                <input type="password" id="page-unlock-password" placeholder="Password" class="w-full px-4 py-3 bg-black rounded-md text-white focus:ring-1 focus:ring-white/20 pr-10 transition-all" onkeypress="if(event.key === 'Enter') verifyPageUnlock('${slug}')">
-                                <button type="button" onclick="togglePasswordVisibility('page-unlock-password', 'eye-icon-page')" class="absolute inset-y-0 right-0 flex items-center pr-4 text-vercel-gray hover:text-white transition-colors">
-                                    <svg id="eye-icon-page" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                <input type="password" id="page-unlock-password" placeholder="Password" class="glass-input w-full px-5 py-4 rounded-xl text-white pr-12 text-center tracking-widest font-medium" onkeypress="if(event.key === 'Enter') verifyPageUnlock('${slug}')">
+                                <button type="button" onclick="togglePasswordVisibility('page-unlock-password', 'eye-icon-page')" class="absolute inset-y-0 right-0 flex items-center pr-5 text-slate-400 hover:text-white transition-colors">
+                                    <svg id="eye-icon-page" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                 </button>
                             </div>
                         </div>
 
-                        <button id="btn-page-unlock" onclick="verifyPageUnlock('${slug}')" class="w-full py-3 bg-vercel-light text-vercel-black font-medium rounded-md hover:bg-white transition-colors shadow-glow">
+                        <button id="btn-page-unlock" onclick="verifyPageUnlock('${slug}')" class="btn-primary w-full py-4 rounded-xl font-bold tracking-wide text-white">
                             Unlock
                         </button>
                         
-                        <div class="mt-6 text-center">
-                            <button onclick="navigateTo('/')" class="text-sm text-vercel-gray hover:text-white transition-colors">← Back to Home</button>
+                        <div class="mt-8 text-center">
+                            <button onclick="navigateTo('/')" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">← Back to Home</button>
                         </div>
                     </div>
                 </div>
@@ -947,8 +963,7 @@
             setLoading('btn-page-unlock', true, "Unlock");
             try {
                 const res = await fetch(`${API_BASE_URL}/api/pastes/${slug}/verify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password })
                 });
                 const data = await res.json();
@@ -958,29 +973,25 @@
                     renderPasteContent(data.data, main);
                 } else {
                     showToast(data.message || "Incorrect password", "error");
-                    pwdInput.value = '';
-                    pwdInput.focus();
+                    pwdInput.value = ''; pwdInput.focus();
                 }
-            } catch(e) {
-                showToast("Network error", "error");
-            } finally {
-                setLoading('btn-page-unlock', false, "Unlock");
-            }
+            } catch(e) { showToast("Network error", "error"); } 
+            finally { setLoading('btn-page-unlock', false, "Unlock"); }
         }
 
         function renderExpiredPage(container) {
             container.innerHTML = `
-                <div class="flex items-center justify-center py-20 px-4 h-full">
-                    <div class="text-center max-w-md w-full">
-                        <div class="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6 text-vercel-gray">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div class="flex items-center justify-center py-20 px-4 h-full fade-in">
+                    <div class="text-center max-w-md w-full glass-panel rounded-3xl p-10">
+                        <div class="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6 text-slate-400">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
                         <h2 class="text-3xl font-bold tracking-tight text-white mb-3">Paste Expired</h2>
-                        <p class="text-vercel-gray mb-10 text-lg">This snippet has reached its time limit and is no longer available.</p>
+                        <p class="text-slate-400 mb-10 text-lg leading-relaxed">This snippet has reached its time limit and is no longer available.</p>
                         
                         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                            <button onclick="navigateTo('/')" class="px-6 py-3 bg-vercel-light text-vercel-black font-medium rounded-md hover:bg-white transition-colors">Create New</button>
-                            <button onclick="navigateTo('/archive')" class="px-6 py-3 bg-transparent text-white font-medium rounded-md hover:bg-white/5 transition-colors">Go to Archive</button>
+                            <button onclick="navigateTo('/')" class="btn-primary px-6 py-3 font-semibold rounded-xl text-white">Create New</button>
+                            <button onclick="navigateTo('/archive')" class="btn-glass px-6 py-3 text-white font-semibold rounded-xl">Go to Archive</button>
                         </div>
                     </div>
                 </div>
@@ -989,12 +1000,12 @@
 
         function renderNotFound(container) {
             container.innerHTML = `
-                <div class="flex items-center justify-center py-32 px-4 h-full">
-                    <div class="text-center">
-                        <h1 class="text-[120px] leading-none font-bold tracking-tighter text-white/10 mb-4">404</h1>
+                <div class="flex items-center justify-center py-32 px-4 h-full fade-in">
+                    <div class="text-center glass-panel rounded-3xl p-12">
+                        <h1 class="text-[120px] leading-none font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white/30 to-white/5 mb-4">404</h1>
                         <h2 class="text-2xl font-bold tracking-tight text-white mb-3">Page Not Found</h2>
-                        <p class="text-vercel-gray mb-8">The paste or page you are looking for does not exist.</p>
-                        <button onclick="navigateTo('/')" class="px-6 py-2.5 bg-vercel-light text-vercel-black font-medium rounded-md hover:bg-white transition-colors">Return Home</button>
+                        <p class="text-slate-400 mb-10">The paste or page you are looking for does not exist.</p>
+                        <button onclick="navigateTo('/')" class="btn-primary px-8 py-3 font-semibold rounded-xl text-white">Return Home</button>
                     </div>
                 </div>
             `;
