@@ -3,71 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pasteview - Code Snippet & Text Storage</title>
+    <title>Pasteview - Share Text & Code Securely</title>
     
-    <!-- Google Font Inter -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Highlight.js CSS for Syntax Highlighting -->
+    <!-- Highlight.js -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-    
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Tailwind Config -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <!-- Tailwind CSS Config -->
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        dark: "#111111",
-                        panel: "#202020",
-                        panel2: "#181818",
-                        line: "#333333",
-                        softline: "#444444",
-                        neon: "#18e06f",
-                        muted: "#a3a3a3"
-                    },
-                    fontFamily: {
-                        inter: ["Inter", "sans-serif"]
+        tailwind = {
+            config: {
+                theme: {
+                    extend: {
+                        colors: {
+                            dark: "#111111",
+                            panel: "#202020",
+                            panel2: "#181818",
+                            line: "#333333",
+                            softline: "#444444",
+                            neon: "#18e06f",
+                            muted: "#a3a3a3"
+                        },
+                        fontFamily: {
+                            inter: ["Inter", "sans-serif"]
+                        }
                     }
                 }
             }
         }
     </script>
     
-    <!-- Highlight.js Script -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            background-color: #111111;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111111;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333333;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444444;
+        }
+
+        /* Input Styles overrides */
+        input[type="text"], input[type="password"], select, textarea {
+            background-color: #181818;
+            border: 1px solid #333333;
+            color: white;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus, input[type="password"]:focus, select:focus, textarea:focus {
+            border-color: #18e06f;
+        }
+
+        .loader {
+            border: 3px solid #333333;
+            border-top: 3px solid #18e06f;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toast-enter {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        .toast-enter-active {
+            transform: translateY(0);
+            opacity: 1;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .toast-exit {
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 0.3s ease-in;
+        }
+    </style>
 </head>
-<body class="min-h-screen bg-dark text-white font-inter overflow-x-hidden selection:bg-neon selection:text-dark">
-    
-    <!-- Main App Container -->
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Global App Container -->
     <div id="app" class="flex flex-col min-h-screen"></div>
 
-    <!-- Toast Notifications Root -->
-    <div id="toast-root" class="fixed bottom-4 left-1/2 -translate-x-1/2 md:left-auto md:right-4 md:translate-x-0 z-50 flex flex-col gap-2 w-[90vw] md:w-auto max-w-sm pointer-events-none"></div>
-
     <!-- Modal Root -->
-    <div id="modal-root" class="relative z-50"></div>
+    <div id="modal-root"></div>
 
-    <!-- Javascript Logic Wrapper -->
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-4 left-1/2 -translate-x-1/2 md:left-auto md:-translate-x-0 md:right-4 z-50 flex flex-col gap-2"></div>
+
     <script>
-        // ==========================================
-        // KONFIGURASI GLOBAL & UTILITY
-        // ==========================================
+        // === CONFIGURATION ===
         const API_BASE_URL = "https://paste.warungmezur.workers.dev";
         const FRONTEND_URL = "https://paste.warungmezur.web.id";
-        
-        const appDiv = document.getElementById("app");
-        const toastRoot = document.getElementById("toast-root");
-        const modalRoot = document.getElementById("modal-root");
 
-        // Temporary storage for unlocked private paste from Archive
+        // === GLOBAL STATE ===
+        let serverTimeOffset = 0;
+        let activeIntervals = {};
         window.__unlockedPaste = null;
 
-        // Utility: Escape HTML untuk mencegah XSS di innerHTML
+        // === TIME & COUNTDOWN UTILS ===
+        function syncServerTime(serverTime) {
+            if (serverTime) {
+                serverTimeOffset = Date.now() - serverTime;
+            }
+        }
+
+        function getCurrentServerTime() {
+            return Date.now() - serverTimeOffset;
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return "-";
+            const date = new Date(timestamp);
+            return new Intl.DateTimeFormat('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(date).replace(' pukul', ',');
+        }
+
+        function formatDuration(ms) {
+            if (ms <= 0) return "Expired";
+            const totalSeconds = Math.floor(ms / 1000);
+            const days = Math.floor(totalSeconds / 86400);
+            const hours = Math.floor((totalSeconds % 86400) / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            if (days > 0) return `${days} hari ${hours} jam`;
+            if (hours > 0) return `${hours} jam ${minutes} menit`;
+            if (minutes > 0) return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            return `${seconds} detik`;
+        }
+
+        function startCountdown(elementId, expiresAt, onExpired = null) {
+            if (!expiresAt) return;
+            
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const update = () => {
+                const now = getCurrentServerTime();
+                const diff = expiresAt - now;
+
+                if (diff <= 0) {
+                    element.textContent = "Expired";
+                    clearInterval(activeIntervals[elementId]);
+                    delete activeIntervals[elementId];
+                    if (onExpired) onExpired();
+                } else {
+                    element.textContent = formatDuration(diff);
+                }
+            };
+
+            update(); // initial call
+            activeIntervals[elementId] = setInterval(update, 1000);
+        }
+
+        function clearAllCountdowns() {
+            for (let id in activeIntervals) {
+                clearInterval(activeIntervals[id]);
+            }
+            activeIntervals = {};
+        }
+
+        // === CORE UI UTILS ===
         function escapeHtml(text) {
             if (!text) return "";
             const div = document.createElement('div');
@@ -75,1084 +204,785 @@
             return div.innerHTML;
         }
 
-        // Utility: Format Tanggal Indonesia
-        function formatDate(timestamp) {
-            if (!timestamp) return "-";
-            const date = new Date(timestamp);
-            const options = {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                timeZone: 'Asia/Jakarta'
-            };
-            let formatted = new Intl.DateTimeFormat('id-ID', options).format(date);
-            return formatted.replace(' pukul ', ', ');
-        }
-
-        // Utility: Copy to Clipboard
-        function copyText(text) {
-            if (navigator.clipboard && window.isSecureContext) {
-                return navigator.clipboard.writeText(text);
-            } else {
-                const textArea = document.createElement("textarea");
-                textArea.value = text;
-                textArea.style.position = "fixed";
-                textArea.style.left = "-999999px";
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                return new Promise((res, rej) => {
-                    document.execCommand('copy') ? res() : rej();
-                    textArea.remove();
-                });
-            }
-        }
-
-        // Utility: Show Toast
         function showToast(message, type = "success") {
+            const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             
-            let bgClass = "bg-panel border-line text-white";
-            let icon = "";
+            let bgClass = type === 'success' ? 'bg-neon text-dark' : (type === 'error' ? 'bg-red-500 text-white' : 'bg-panel text-white');
             
-            if (type === "success") {
-                bgClass = "bg-panel border-neon text-white";
-                icon = `<svg class="w-5 h-5 text-neon shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
-            } else if (type === "error") {
-                bgClass = "bg-panel border-red-500 text-white";
-                icon = `<svg class="w-5 h-5 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
-            } else {
-                icon = `<svg class="w-5 h-5 text-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
-            }
-
-            toast.className = `flex items-center gap-3 w-full p-4 rounded-lg shadow-xl border ${bgClass} pointer-events-auto transition-all duration-300 transform translate-y-4 opacity-0`;
+            toast.className = `toast-enter flex items-center px-4 py-3 rounded shadow-lg font-medium text-sm border border-line ${bgClass} min-w-[280px]`;
             toast.innerHTML = `
-                ${icon}
-                <span class="text-sm font-medium flex-1">${escapeHtml(message)}</span>
+                <div class="flex-1">${escapeHtml(message)}</div>
+                <button onclick="this.parentElement.remove()" class="ml-4 opacity-70 hover:opacity-100">&times;</button>
             `;
-
-            toastRoot.appendChild(toast);
-
+            
+            container.appendChild(toast);
+            
+            // Animate in
             requestAnimationFrame(() => {
-                toast.classList.remove('translate-y-4', 'opacity-0');
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-enter-active');
             });
 
+            // Auto close
             setTimeout(() => {
-                toast.classList.add('opacity-0', 'scale-95');
+                toast.classList.remove('toast-enter-active');
+                toast.classList.add('toast-exit');
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
 
-        // Utility: Loading State
-        function setLoading(element, isLoading, originalText = '', loadingText = 'Saving...') {
-            if (isLoading) {
-                element.disabled = true;
-                element.innerHTML = `
-                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-dark inline-block" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    ${loadingText}
-                `;
-                element.classList.add('opacity-70', 'cursor-not-allowed');
-            } else {
-                element.disabled = false;
-                element.innerHTML = originalText;
-                element.classList.remove('opacity-70', 'cursor-not-allowed');
-            }
-        }
-
-        // ==========================================
-        // FITUR PASSWORD & UNLOCK
-        // ==========================================
-        function togglePasswordVisibility(inputId, buttonId) {
-            const input = document.getElementById(inputId);
-            const btn = document.getElementById(buttonId);
-            if (!input || !btn) return;
-
-            const iconEye = btn.querySelector('.eye-icon');
-            const iconEyeSlash = btn.querySelector('.eye-slash-icon');
-
-            if (input.type === 'password') {
-                input.type = 'text';
-                iconEye?.classList.add('hidden');
-                iconEyeSlash?.classList.remove('hidden');
-            } else {
-                input.type = 'password';
-                iconEye?.classList.remove('hidden');
-                iconEyeSlash?.classList.add('hidden');
-            }
-        }
-
-        function togglePrivatePasswordField() {
-            const visibilityEl = document.getElementById('paste-visibility');
-            const passwordContainer = document.getElementById('password-container');
-            const passwordInput = document.getElementById('paste-password');
-
-            if (!visibilityEl || !passwordContainer || !passwordInput) return;
-
-            if (visibilityEl.value === 'private') {
-                passwordContainer.classList.remove('hidden');
-                passwordContainer.classList.add('block');
-                setTimeout(() => passwordInput.focus(), 100);
-            } else {
-                passwordContainer.classList.add('hidden');
-                passwordContainer.classList.remove('block');
-                passwordInput.value = ''; 
-                
-                passwordInput.type = 'password';
-                const toggleBtn = document.getElementById('btn-toggle-password');
-                const iconEye = toggleBtn?.querySelector('.eye-icon');
-                const iconEyeSlash = toggleBtn?.querySelector('.eye-slash-icon');
-                iconEye?.classList.remove('hidden');
-                iconEyeSlash?.classList.add('hidden');
-            }
-        }
-
-        function renderPrivateUnlock(pasteMeta, slug) {
-            const mainEl = document.querySelector('main');
-            const title = escapeHtml(pasteMeta.title || 'Paste Private');
-            
-            mainEl.innerHTML = `
-                <div class="flex-1 flex flex-col items-center justify-center text-center p-4 mt-10 w-full">
-                    <div class="w-20 h-20 bg-panel border border-line rounded-full flex items-center justify-center mb-6 text-muted">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                    </div>
-                    <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">Paste Private</h1>
-                    <p class="text-neon text-sm font-medium mb-2">${title}</p>
-                    <p class="text-muted text-sm mb-8">Masukkan password untuk membuka paste ini.</p>
-                    
-                    <div class="w-full max-w-sm mb-8 space-y-4">
-                        <div class="relative">
-                            <input type="password" id="unlock-password" placeholder="Password paste..." class="w-full bg-panel border border-line focus:border-neon focus:ring-1 focus:ring-neon rounded-lg px-4 py-3.5 text-sm text-white outline-none transition-all pr-12">
-                            <button type="button" id="btn-toggle-unlock" class="absolute inset-y-0 right-0 flex items-center px-4 text-muted hover:text-white transition-colors" onclick="togglePasswordVisibility('unlock-password', 'btn-toggle-unlock')">
-                                <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                <svg class="w-5 h-5 eye-slash-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
-                            </button>
-                        </div>
-                        <button id="btn-unlock" class="w-full bg-neon hover:bg-neon/90 text-dark font-bold py-3.5 px-4 rounded-lg transition-colors text-sm shadow-[0_0_15px_rgba(24,224,111,0.2)]">
-                            Unlock
-                        </button>
-                    </div>
-
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <button onclick="navigateTo('/')" class="bg-panel hover:bg-line border border-line text-white font-medium py-2.5 px-6 rounded-lg text-sm transition-colors">Back to New Paste</button>
-                        <button onclick="navigateTo('/archive')" class="bg-panel hover:bg-line border border-line text-white font-medium py-2.5 px-6 rounded-lg text-sm transition-colors">Back to Archive</button>
+        function showModal(htmlContent) {
+            const root = document.getElementById('modal-root');
+            root.innerHTML = `
+                <div class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal()"></div>
+                    <div class="relative bg-panel border border-line rounded-lg shadow-2xl w-full max-w-[92vw] md:max-w-md overflow-hidden transform transition-all">
+                        ${htmlContent}
                     </div>
                 </div>
             `;
-
-            const pwInput = document.getElementById('unlock-password');
-            const btnUnlock = document.getElementById('btn-unlock');
             
-            const handleUnlock = () => verifyPrivatePaste(slug);
+            const handleEsc = (e) => {
+                if(e.key === 'Escape') {
+                    closeModal();
+                    document.removeEventListener('keydown', handleEsc);
+                }
+            };
+            document.addEventListener('keydown', handleEsc);
+        }
 
-            btnUnlock.addEventListener('click', handleUnlock);
-            pwInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleUnlock();
+        function closeModal() {
+            document.getElementById('modal-root').innerHTML = '';
+        }
+
+        function copyText(text, buttonElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("Berhasil disalin!", "success");
+                if (buttonElement) {
+                    const originalText = buttonElement.innerHTML;
+                    buttonElement.innerHTML = `<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Copied`;
+                    setTimeout(() => {
+                        buttonElement.innerHTML = originalText;
+                    }, 2000);
+                }
+            }).catch(err => {
+                showToast("Gagal menyalin text", "error");
+            });
+        }
+
+        function setLoading(btnId, isLoading, originalText = "Submit") {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            if (isLoading) {
+                btn.disabled = true;
+                btn.classList.add('opacity-70', 'cursor-not-allowed');
+                btn.innerHTML = `<div class="flex items-center justify-center"><div class="loader mr-2 border-t-dark"></div> Saving...</div>`;
+            } else {
+                btn.disabled = false;
+                btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                btn.innerHTML = originalText;
+            }
+        }
+
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />`;
+            } else {
+                input.type = "password";
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
+            }
+        }
+
+        // === ROUTING ===
+        function navigateTo(path) {
+            history.pushState(null, "", path);
+            renderRoute();
+        }
+
+        window.addEventListener("popstate", renderRoute);
+
+        function renderRoute() {
+            clearAllCountdowns();
+            const path = window.location.pathname;
+            const app = document.getElementById('app');
+            
+            // Render basic layout header first
+            app.innerHTML = renderHeader() + `<main id="main-content" class="flex-1 w-full max-w-7xl mx-auto"></main>`;
+            const main = document.getElementById('main-content');
+
+            if (path === "/" || path === "") {
+                main.innerHTML = getNewPasteHTML();
+                initNewPasteLogic();
+            } else if (path === "/archive") {
+                main.innerHTML = getArchiveHTML();
+                fetchArchive(1);
+            } else if (path.startsWith("/p/")) {
+                const slug = path.split("/p/")[1];
+                if(slug) {
+                    renderPasteDetail(slug);
+                } else {
+                    renderNotFound(main);
+                }
+            } else {
+                renderNotFound(main);
+            }
+        }
+
+        function renderHeader() {
+            const currentPath = window.location.pathname;
+            const isHome = currentPath === '/';
+            const isArchive = currentPath === '/archive';
+            
+            return `
+                <header class="bg-panel border-b border-line sticky top-0 z-40">
+                    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+                        <a href="/" onclick="event.preventDefault(); navigateTo('/')" class="flex items-center gap-2 text-xl font-bold tracking-tight text-white hover:text-neon transition-colors">
+                            <svg class="w-6 h-6 text-neon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Pasteview
+                        </a>
+                        <nav class="flex items-center gap-4 text-sm font-medium">
+                            <a href="/" onclick="event.preventDefault(); navigateTo('/')" class="${isHome ? 'text-neon' : 'text-muted hover:text-white'} transition-colors hidden md:block">+ New Paste</a>
+                            <a href="/archive" onclick="event.preventDefault(); navigateTo('/archive')" class="${isArchive ? 'text-neon' : 'text-muted hover:text-white'} transition-colors flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                                Archive
+                            </a>
+                        </nav>
+                    </div>
+                </header>
+            `;
+        }
+
+        // === VIEW: NEW PASTE ===
+        function getNewPasteHTML() {
+            return `
+                <div class="grid grid-cols-1 lg:grid-cols-[330px_1fr] gap-0 lg:gap-6 p-0 lg:p-6 h-full">
+                    
+                    <!-- Sidebar Form -->
+                    <div class="bg-panel lg:rounded-xl border-b lg:border border-line p-5 space-y-5 h-fit order-2 lg:order-1 mt-6 lg:mt-0 mb-8 lg:mb-0">
+                        <div class="mb-2 hidden lg:block">
+                            <h2 class="text-lg font-bold text-white">Create New Paste</h2>
+                            <p class="text-xs text-muted mt-1">Configure your paste settings.</p>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wider">Title</label>
+                                <input type="text" id="p-title" placeholder="Untitled Paste" class="w-full px-3 py-2.5 rounded text-sm placeholder-softline focus:ring-1 focus:ring-neon">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wider">Syntax Highlighting</label>
+                                <select id="p-syntax" class="w-full px-3 py-2.5 rounded text-sm appearance-none cursor-pointer">
+                                    <option value="text">Plain Text</option>
+                                    <option value="javascript">JavaScript</option>
+                                    <option value="html">HTML</option>
+                                    <option value="css">CSS</option>
+                                    <option value="json">JSON</option>
+                                    <option value="php">PHP</option>
+                                    <option value="sql">SQL</option>
+                                    <option value="java">Java</option>
+                                    <option value="python">Python</option>
+                                    <option value="markdown">Markdown</option>
+                                    <option value="bash">Bash</option>
+                                    <option value="typescript">TypeScript</option>
+                                    <option value="xml">XML</option>
+                                    <option value="cpp">C++</option>
+                                    <option value="go">Go</option>
+                                    <option value="rust">Rust</option>
+                                    <option value="ruby">Ruby</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wider">Visibility</label>
+                                <select id="p-visibility" class="w-full px-3 py-2.5 rounded text-sm appearance-none cursor-pointer">
+                                    <option value="public">Public</option>
+                                    <option value="unlisted">Unlisted</option>
+                                    <option value="private">Private (Password)</option>
+                                </select>
+                            </div>
+
+                            <div id="password-wrapper" class="hidden">
+                                <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wider">Password Private Paste</label>
+                                <div class="relative">
+                                    <input type="password" id="p-password" placeholder="Masukkan password min 4 kar" class="w-full px-3 py-2.5 rounded text-sm pr-10">
+                                    <button type="button" onclick="togglePasswordVisibility('p-password', 'eye-icon-new')" class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted hover:text-white">
+                                        <svg id="eye-icon-new" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wider">Expiration</label>
+                                <select id="p-expiration" class="w-full px-3 py-2.5 rounded text-sm appearance-none cursor-pointer">
+                                    <option value="never">No Expiration</option>
+                                    <option value="5m">5 Minutes</option>
+                                    <option value="10m">10 Minutes</option>
+                                    <option value="30m">30 Minutes</option>
+                                    <option value="1h">1 Hour</option>
+                                    <option value="6h">6 Hours</option>
+                                    <option value="12h">12 Hours</option>
+                                    <option value="1d">1 Day</option>
+                                    <option value="3d">3 Days</option>
+                                    <option value="7d">7 Days</option>
+                                    <option value="30d">30 Days</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button id="btn-submit-paste" class="w-full bg-neon text-dark font-bold py-3 rounded hover:bg-[#15c561] transition-colors mt-6 shadow-[0_0_15px_rgba(24,224,111,0.2)]">
+                            Create Paste
+                        </button>
+                    </div>
+
+                    <!-- Editor Area -->
+                    <div class="flex flex-col h-full order-1 lg:order-2 bg-[#141414] lg:bg-transparent">
+                        <div class="flex items-center justify-between p-3 lg:px-0 lg:py-2 border-b lg:border-none border-line">
+                            <div class="text-sm font-medium text-muted">Editor</div>
+                            <div class="flex items-center gap-3 text-xs">
+                                <span id="char-count" class="text-muted">0 Chars</span>
+                                <button onclick="document.getElementById('p-content').value=''; document.getElementById('char-count').textContent='0 Chars';" class="text-muted hover:text-white transition">Clear</button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex-1 relative group rounded-none lg:rounded-xl overflow-hidden border-y lg:border border-line bg-panel2 focus-within:border-neon transition-colors">
+                            <textarea id="p-content" class="w-full h-full min-h-[360px] lg:min-h-[560px] bg-transparent text-white p-4 font-mono text-sm resize-none focus:outline-none" placeholder="Paste your code or text here..." spellcheck="false"></textarea>
+                        </div>
+                        
+                        <div class="p-3 text-center text-xs text-softline border-b lg:border-none border-line lg:mt-2">
+                            Drop one file here or click to upload to Uploadery (UI Only)
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function initNewPasteLogic() {
+            const visSelect = document.getElementById('p-visibility');
+            const passWrapper = document.getElementById('password-wrapper');
+            const passInput = document.getElementById('p-password');
+            const contentArea = document.getElementById('p-content');
+            const charCount = document.getElementById('char-count');
+            const btnSubmit = document.getElementById('btn-submit-paste');
+
+            visSelect.addEventListener('change', (e) => {
+                if(e.target.value === 'private') {
+                    passWrapper.classList.remove('hidden');
+                } else {
+                    passWrapper.classList.add('hidden');
+                    passInput.value = '';
                 }
             });
 
-            pwInput.focus();
+            contentArea.addEventListener('input', (e) => {
+                charCount.textContent = `${e.target.value.length} Chars`;
+            });
+
+            btnSubmit.addEventListener('click', async () => {
+                const title = document.getElementById('p-title').value.trim();
+                const syntax = document.getElementById('p-syntax').value;
+                const visibility = document.getElementById('p-visibility').value;
+                const expiration = document.getElementById('p-expiration').value;
+                const content = document.getElementById('p-content').value;
+                const password = document.getElementById('p-password').value;
+
+                if (!content) {
+                    return showToast("Content paste tidak boleh kosong!", "error");
+                }
+                if (visibility === 'private' && password.length < 4) {
+                    return showToast("Password private minimal 4 karakter!", "error");
+                }
+
+                setLoading('btn-submit-paste', true, "Create Paste");
+
+                const payload = { title, syntax, visibility, expiration, content };
+                if (visibility === 'private') {
+                    payload.password = password;
+                }
+
+                try {
+                    const res = await fetch(`${API_BASE_URL}/api/pastes`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+
+                    if (data.success) {
+                        syncServerTime(data.server_time);
+                        showSuccessModal(data.data);
+                    } else {
+                        showToast(data.message || "Gagal membuat paste", "error");
+                    }
+                } catch (error) {
+                    showToast("Terjadi kesalahan jaringan", "error");
+                } finally {
+                    setLoading('btn-submit-paste', false, "Create Paste");
+                }
+            });
         }
 
-        async function verifyPrivatePaste(slug) {
-            const pwInput = document.getElementById('unlock-password');
-            const btnUnlock = document.getElementById('btn-unlock');
-            const password = pwInput.value.trim();
+        function showSuccessModal(pasteData) {
+            const url = pasteData.frontend_url || `${FRONTEND_URL}/p/${pasteData.slug}`;
+            
+            let warningHtml = '';
+            if (pasteData.visibility === 'private') {
+                warningHtml = `
+                    <div class="bg-yellow-500/10 border border-yellow-500/30 text-yellow-500 text-sm p-3 rounded mb-4 flex gap-2 items-start">
+                        <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        <p>Paste ini private. Simpan password kamu, karena dibutuhkan untuk membuka paste.</p>
+                    </div>
+                `;
+            }
 
-            if (!password) {
-                showToast("Password wajib diisi", "error");
-                pwInput.focus();
+            let expireHtml = '';
+            if (pasteData.expires_at) {
+                expireHtml = `
+                    <div class="text-sm text-muted mb-4 text-center">
+                        Paste akan expired dalam: <span id="modal-countdown-${pasteData.slug}" class="text-neon font-mono font-medium">--:--</span>
+                    </div>
+                `;
+            }
+
+            showModal(`
+                <div class="p-6">
+                    <div class="w-12 h-12 rounded-full bg-neon/10 text-neon flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-center text-white mb-2">Paste Created!</h3>
+                    <p class="text-center text-sm text-muted mb-6">Your paste has been successfully saved.</p>
+                    
+                    ${warningHtml}
+                    ${expireHtml}
+
+                    <div class="flex items-center gap-2 mb-6">
+                        <input type="text" readonly value="${url}" class="flex-1 bg-panel2 border border-line text-muted text-sm px-3 py-2.5 rounded focus:outline-none">
+                        <button onclick="copyText('${url}', this)" class="bg-line hover:bg-softline text-white px-4 py-2.5 rounded text-sm font-medium transition flex items-center">
+                            Copy
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="closeModal(); document.getElementById('p-content').value=''; document.getElementById('p-title').value='';" class="px-4 py-2.5 rounded text-sm font-medium border border-line text-white hover:bg-panel2 transition">
+                            Create Another
+                        </button>
+                        <button onclick="closeModal(); navigateTo('/p/${pasteData.slug}')" class="px-4 py-2.5 rounded text-sm font-medium bg-neon text-dark hover:bg-[#15c561] transition">
+                            Open Paste
+                        </button>
+                    </div>
+                </div>
+            `);
+
+            if (pasteData.expires_at) {
+                startCountdown(`modal-countdown-${pasteData.slug}`, pasteData.expires_at);
+            }
+        }
+
+        // === VIEW: ARCHIVE ===
+        function getArchiveHTML() {
+            return `
+                <div class="p-4 lg:p-8">
+                    <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                        <div>
+                            <h1 class="text-2xl font-bold text-white">Public Archive</h1>
+                            <p class="text-muted text-sm mt-1">Browse recently shared public and protected pastes.</p>
+                        </div>
+                        <button onclick="fetchArchive(1)" class="text-sm flex items-center gap-2 px-4 py-2 rounded bg-panel border border-line hover:border-softline transition text-white w-fit">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            Refresh
+                        </button>
+                    </div>
+                    
+                    <div id="archive-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="col-span-full py-12 flex justify-center">
+                            <div class="loader"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function fetchArchive(page = 1) {
+            const listEl = document.getElementById('archive-list');
+            if(!listEl) return;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/pastes?page=${page}&limit=50`);
+                const data = await res.json();
+
+                if (data.success) {
+                    syncServerTime(data.server_time);
+                    renderArchiveCards(data.data);
+                } else {
+                    listEl.innerHTML = `<div class="col-span-full text-center text-red-400 py-8">${escapeHtml(data.message)}</div>`;
+                }
+            } catch (error) {
+                listEl.innerHTML = `<div class="col-span-full text-center text-red-400 py-8">Failed to load archive.</div>`;
+            }
+        }
+
+        function renderArchiveCards(pastes) {
+            const listEl = document.getElementById('archive-list');
+            if (!pastes || pastes.length === 0) {
+                listEl.innerHTML = `
+                    <div class="col-span-full flex flex-col items-center justify-center py-16 text-center border border-dashed border-line rounded-xl">
+                        <div class="w-16 h-16 rounded-full bg-panel flex items-center justify-center text-muted mb-4">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-white mb-1">No pastes found</h3>
+                        <p class="text-muted text-sm">The archive is currently empty.</p>
+                    </div>`;
                 return;
             }
 
-            const originalText = btnUnlock.innerHTML;
-            setLoading(btnUnlock, true, originalText, 'Unlocking...');
+            listEl.innerHTML = '';
+            
+            pastes.forEach(paste => {
+                const isPrivate = paste.visibility === 'private' || paste.is_private;
+                const isExpired = paste.expires_at && (paste.expires_at - getCurrentServerTime() <= 0);
+                
+                const card = document.createElement('div');
+                card.className = "bg-panel border border-line rounded-xl p-5 hover:border-softline transition-colors flex flex-col h-full relative overflow-hidden group";
+                
+                let visibilityBadge = isPrivate ? 
+                    `<span class="bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded font-bold flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Private</span>` : 
+                    `<span class="bg-neon/10 text-neon border border-neon/20 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded font-bold">Public</span>`;
 
+                let timeInfo = '';
+                if (paste.expires_at) {
+                    timeInfo = `<div class="mt-4 pt-3 border-t border-line text-xs flex justify-between items-center text-muted">
+                        <span>Expires in:</span>
+                        <span id="card-timer-${paste.slug}" class="font-mono ${isExpired ? 'text-red-400' : 'text-neon'}">Loading...</span>
+                    </div>`;
+                }
+
+                let actionButton = '';
+                if (isExpired) {
+                     actionButton = `<button disabled class="w-full mt-4 py-2 bg-line text-muted rounded text-sm font-medium cursor-not-allowed">Expired</button>`;
+                } else if (isPrivate) {
+                     actionButton = `<button onclick='openArchivePrivateModal(${JSON.stringify(paste).replace(/'/g, "&apos;")})' class="w-full mt-4 py-2 bg-panel2 border border-line hover:bg-line text-white rounded text-sm font-medium transition flex items-center justify-center gap-2"><svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Unlock Paste</button>`;
+                } else {
+                     actionButton = `<button onclick="navigateTo('/p/${paste.slug}')" class="w-full mt-4 py-2 bg-neon/10 text-neon hover:bg-neon hover:text-dark rounded text-sm font-medium transition">View Paste</button>`;
+                }
+
+                card.innerHTML = `
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="font-bold text-white text-lg truncate pr-3" title="${escapeHtml(paste.title || 'Untitled')}">${escapeHtml(paste.title || 'Untitled')}</h3>
+                            ${visibilityBadge}
+                        </div>
+                        <div class="flex items-center gap-3 text-xs text-muted mb-4">
+                            <span class="bg-panel2 px-2 py-1 rounded text-[11px] font-mono border border-line uppercase">${paste.syntax || 'text'}</span>
+                            <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> ${paste.views || 0}</span>
+                        </div>
+                        <div class="text-xs text-softline">
+                            Created: ${formatDate(paste.created_at)}
+                        </div>
+                    </div>
+                    ${timeInfo}
+                    ${actionButton}
+                `;
+                listEl.appendChild(card);
+
+                if (paste.expires_at) {
+                    startCountdown(`card-timer-${paste.slug}`, paste.expires_at, () => fetchArchive(page));
+                }
+            });
+        }
+
+        function openArchivePrivateModal(paste) {
+            showModal(`
+                <div class="p-6">
+                    <div class="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-center text-white mb-1">Private Paste</h3>
+                    <p class="text-center text-sm text-muted mb-6">"${escapeHtml(paste.title || 'Untitled')}" requires a password.</p>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="relative">
+                            <input type="password" id="modal-unlock-password" placeholder="Enter password..." class="w-full px-4 py-3 bg-panel2 border border-line rounded text-white focus:border-neon pr-10" onkeypress="if(event.key === 'Enter') verifyArchiveUnlock('${paste.slug}')">
+                            <button type="button" onclick="togglePasswordVisibility('modal-unlock-password', 'eye-icon-modal')" class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted hover:text-white">
+                                <svg id="eye-icon-modal" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="closeModal()" class="flex-1 px-4 py-2.5 rounded text-sm font-medium border border-line text-white hover:bg-panel2 transition">Cancel</button>
+                        <button id="btn-modal-unlock" onclick="verifyArchiveUnlock('${paste.slug}')" class="flex-1 px-4 py-2.5 rounded text-sm font-medium bg-neon text-dark hover:bg-[#15c561] transition">Unlock</button>
+                    </div>
+                </div>
+            `);
+            setTimeout(() => document.getElementById('modal-unlock-password').focus(), 100);
+        }
+
+        async function verifyArchiveUnlock(slug) {
+            const pwdInput = document.getElementById('modal-unlock-password');
+            const password = pwdInput.value;
+            if(!password) return showToast("Password wajib diisi!", "error");
+
+            setLoading('btn-modal-unlock', true, "Unlock");
             try {
                 const res = await fetch(`${API_BASE_URL}/api/pastes/${slug}/verify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password })
                 });
+                const data = await res.json();
                 
-                const result = await res.json();
-
-                if (result.success) {
-                    showToast("Password benar", "success");
-                    renderPasteContent(result.data, slug);
+                if (data.success) {
+                    window.__unlockedPaste = data.data; // Simpan data untuk dirender di halaman detail
+                    closeModal();
+                    navigateTo(`/p/${slug}`);
                 } else {
-                    showToast(result.message || "Password salah", "error");
-                    pwInput.value = "";
-                    pwInput.focus();
+                    showToast(data.message || "Password salah", "error");
+                    pwdInput.value = '';
+                    pwdInput.focus();
                 }
-            } catch (error) {
-                showToast("Terjadi kesalahan sistem", "error");
+            } catch(e) {
+                showToast("Terjadi kesalahan jaringan", "error");
             } finally {
-                setLoading(btnUnlock, false, originalText);
+                setLoading('btn-modal-unlock', false, "Unlock");
             }
         }
 
-        // ==========================================
-        // ARCHIVE PRIVATE UNLOCK MODAL
-        // ==========================================
-        function openArchivePrivateUnlockModal(slug) {
-             const paste = archiveDataCache.find(p => p.slug === slug);
-             if(!paste) return;
 
-             const modal = document.createElement('div');
-             const title = escapeHtml(paste.title || 'Paste Private');
-
-             modal.className = "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-300";
-             modal.innerHTML = `
-                 <div class="bg-panel border border-line rounded-xl shadow-2xl w-full max-w-[92vw] md:max-w-md transform scale-95 transition-transform duration-300" id="modal-content">
-                     <div class="p-6 md:p-8 text-center flex flex-col items-center">
-                         <div class="w-16 h-16 bg-line/50 rounded-full flex items-center justify-center mb-5 border border-line">
-                             <svg class="w-8 h-8 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                         </div>
-                         <h3 class="text-xl font-bold text-white mb-1">Paste Private</h3>
-                         <p class="text-neon text-sm font-medium mb-2">${title}</p>
-                         <p class="text-muted text-sm mb-6">Masukkan password untuk membuka paste ini.</p>
-                         
-                         <div class="w-full relative mb-6">
-                             <input type="password" id="archive-unlock-password" placeholder="Password paste..." class="w-full bg-panel2 border border-line focus:border-neon focus:ring-1 focus:ring-neon rounded-lg px-4 py-3 text-sm text-white outline-none transition-all pr-12">
-                             <button type="button" id="btn-toggle-archive-unlock" class="absolute inset-y-0 right-0 flex items-center px-4 text-muted hover:text-white transition-colors" onclick="togglePasswordVisibility('archive-unlock-password', 'btn-toggle-archive-unlock')">
-                                 <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                 <svg class="w-5 h-5 eye-slash-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
-                             </button>
-                         </div>
-                         
-                         <div class="w-full flex flex-col md:flex-row gap-3">
-                             <button id="modal-cancel-btn" class="flex-1 bg-line hover:bg-softline text-white py-2.5 px-4 rounded-lg font-medium transition-colors text-sm">
-                                 Cancel
-                             </button>
-                             <button id="modal-unlock-btn" class="flex-1 bg-neon hover:bg-neon/90 text-dark py-2.5 px-4 rounded-lg font-bold transition-colors text-sm shadow-[0_0_15px_rgba(24,224,111,0.3)]">
-                                 Unlock
-                             </button>
-                         </div>
-                     </div>
-                 </div>
-             `;
-
-             modalRoot.appendChild(modal);
-             
-             const pwInput = modal.querySelector('#archive-unlock-password');
-             const btnUnlock = modal.querySelector('#modal-unlock-btn');
-             const btnCancel = modal.querySelector('#modal-cancel-btn');
-
-             const closeHandler = () => {
-                 modal.classList.add('opacity-0');
-                 modal.querySelector('#modal-content').classList.add('scale-95');
-                 setTimeout(() => modal.remove(), 300);
-             };
-
-             btnCancel.addEventListener('click', closeHandler);
-             
-             modal.addEventListener('click', (e) => {
-                 if (e.target === modal) closeHandler(); 
-             });
-
-             const handleUnlock = () => verifyArchivePrivatePaste(slug, pwInput, btnUnlock, closeHandler);
-
-             btnUnlock.addEventListener('click', handleUnlock);
-             pwInput.addEventListener('keydown', (e) => {
-                 if(e.key === 'Enter') {
-                     e.preventDefault();
-                     handleUnlock();
-                 }
-             });
-
-             requestAnimationFrame(() => {
-                 modal.classList.remove('opacity-0');
-                 modal.querySelector('#modal-content').classList.remove('scale-95');
-                 pwInput.focus();
-             });
-        }
-
-        async function verifyArchivePrivatePaste(slug, pwInput, btnUnlock, closeHandler) {
-             const password = pwInput.value.trim();
-
-             if (!password) {
-                 showToast("Password wajib diisi", "error");
-                 pwInput.focus();
-                 return;
-             }
-
-             const originalText = btnUnlock.innerHTML;
-             setLoading(btnUnlock, true, originalText, 'Unlocking...');
-
-             try {
-                 const res = await fetch(`${API_BASE_URL}/api/pastes/${slug}/verify`, {
-                     method: 'POST',
-                     headers: { 'Content-Type': 'application/json' },
-                     body: JSON.stringify({ password })
-                 });
-                 
-                 const result = await res.json();
-
-                 if (result.success) {
-                     closeHandler();
-                     window.__unlockedPaste = result.data;
-                     navigateTo("/p/" + slug);
-                 } else {
-                     showToast(result.message || "Password salah", "error");
-                     pwInput.value = "";
-                     pwInput.focus();
-                 }
-             } catch (error) {
-                 showToast("Terjadi kesalahan sistem", "error");
-             } finally {
-                 setLoading(btnUnlock, false, originalText);
-             }
-        }
-
-        // ==========================================
-        // UI COMPONENTS & MODALS
-        // ==========================================
-        function showSuccessModal(data, isPrivate = false) {
-            const modal = document.createElement('div');
-            const slug = data.slug;
-            // Clean URL
-            const pasteUrl = data.frontend_url || data.full_url || (FRONTEND_URL + "/p/" + slug);
-            
-            const privateNotice = isPrivate ? 
-                `<p class="text-xs text-yellow-500 mt-3 font-medium bg-yellow-500/10 py-2 px-3 rounded border border-yellow-500/20">Paste ini private. Simpan password kamu, karena dibutuhkan untuk membuka paste.</p>` : '';
-
-            modal.className = "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-300";
-            modal.innerHTML = `
-                <div class="bg-panel border border-line rounded-xl shadow-2xl w-full max-w-[92vw] md:max-w-md transform scale-95 transition-transform duration-300" id="modal-content">
-                    <div class="p-6 md:p-8 text-center flex flex-col items-center">
-                        <div class="w-16 h-16 bg-neon/10 rounded-full flex items-center justify-center mb-5 border border-neon/20">
-                            <svg class="w-8 h-8 text-neon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                        </div>
-                        <h3 class="text-xl font-bold text-white mb-2">Paste berhasil dibuat</h3>
-                        <p class="text-muted text-sm mb-6">Link paste kamu sudah siap.</p>
-                        
-                        <div class="w-full flex bg-panel2 border border-line rounded-lg overflow-hidden mb-3 relative">
-                            <input type="text" readonly value="${pasteUrl}" class="w-full bg-transparent text-sm text-muted px-4 py-3 outline-none min-w-0" id="modal-link-input">
-                        </div>
-                        
-                        ${privateNotice}
-                        
-                        <div class="w-full flex flex-col md:flex-row gap-3 mt-6">
-                            <button id="modal-copy-btn" class="flex-1 bg-line hover:bg-softline text-white py-2.5 px-4 rounded-lg font-medium transition-colors text-sm">
-                                Copy Link
-                            </button>
-                            <button id="modal-open-btn" class="flex-1 bg-neon hover:bg-neon/90 text-dark py-2.5 px-4 rounded-lg font-bold transition-colors text-sm shadow-[0_0_15px_rgba(24,224,111,0.3)]">
-                                Open Paste
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Close Button -->
-                    <button id="modal-close-btn" class="absolute top-4 right-4 text-muted hover:text-white transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                </div>
-            `;
-
-            modalRoot.appendChild(modal);
-
-            // Modal Events
-            modal.querySelector('#modal-copy-btn').addEventListener('click', () => {
-                copyText(pasteUrl).then(() => showToast("Link berhasil disalin"));
-            });
-            
-            modal.querySelector('#modal-open-btn').addEventListener('click', () => {
-                closeModal();
-                
-                // If it's private, we just created it and have the raw string? 
-                // Wait, if we just created it, the backend doesn't send the raw content back in the success response.
-                // We will navigate to /p/slug. The detail page will try to fetch it, 
-                // get 401 (private), and show the unlock screen. This is secure and expected.
-                navigateTo("/p/" + slug);
-            });
-
-            const closeHandler = () => closeModal();
-            modal.querySelector('#modal-close-btn').addEventListener('click', closeHandler);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) closeHandler(); 
-            });
-
-            const escHandler = (e) => {
-                if (e.key === "Escape") {
-                    closeHandler();
-                    document.removeEventListener('keydown', escHandler);
-                }
-            };
-            document.addEventListener('keydown', escHandler);
-
-            requestAnimationFrame(() => {
-                modal.classList.remove('opacity-0');
-                modal.querySelector('#modal-content').classList.remove('scale-95');
-            });
-        }
-
-        function closeModal() {
-            const modal = modalRoot.firstElementChild;
-            if (modal) {
-                modal.classList.add('opacity-0');
-                modal.querySelector('#modal-content').classList.add('scale-95');
-                setTimeout(() => modal.remove(), 300);
-            }
-        }
-
-        function renderHeader() {
-            const path = window.location.pathname;
-            const isNew = path === "/";
-            const isArchive = path === "/archive";
-
-            return `
-                <header class="sticky top-0 z-40 bg-dark/95 backdrop-blur-md border-b border-line px-4 md:px-6 lg:px-10 py-3 md:py-4">
-                    <div class="max-w-screen-2xl mx-auto flex flex-wrap items-center justify-between gap-3">
-                        <div class="flex items-center gap-6">
-                            <a href="/" onclick="event.preventDefault(); navigateTo('/')" class="flex items-center gap-2 group outline-none">
-                                <div class="w-8 h-8 bg-neon rounded flex items-center justify-center text-dark font-black text-xl group-hover:scale-105 transition-transform">
-                                    P
-                                </div>
-                                <span class="text-lg font-bold text-white tracking-tight hidden sm:block">Pasteview</span>
-                            </a>
-                            
-                            <nav class="hidden sm:flex items-center gap-1 bg-panel border border-line rounded-lg p-1">
-                                <a href="/" onclick="event.preventDefault(); navigateTo('/')" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${isNew ? 'bg-line text-white' : 'text-muted hover:text-white'}">New Paste</a>
-                                <a href="/archive" onclick="event.preventDefault(); navigateTo('/archive')" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${isArchive ? 'bg-line text-white' : 'text-muted hover:text-white'}">Paste Archive</a>
-                            </nav>
-                        </div>
-                        
-                        <div class="flex items-center gap-3">
-                            <nav class="flex sm:hidden items-center gap-1 bg-panel border border-line rounded-lg p-1 mr-2">
-                                 <a href="/" onclick="event.preventDefault(); navigateTo('/')" class="px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${isNew ? 'bg-line text-white' : 'text-muted hover:text-white'}">New</a>
-                                <a href="/archive" onclick="event.preventDefault(); navigateTo('/archive')" class="px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${isArchive ? 'bg-line text-white' : 'text-muted hover:text-white'}">Archive</a>
-                            </nav>
-                            <span class="text-sm font-medium text-muted hidden md:block">Guest</span>
-                            <button class="bg-panel hover:bg-line border border-line text-white text-sm font-medium py-1.5 px-4 rounded-lg transition-colors hidden sm:block">
-                                Sign up or login
-                            </button>
-                        </div>
-                    </div>
-                </header>
-            `;
-        }
-
-        // ==========================================
-        // HISTORY API ROUTING
-        // ==========================================
-        function initApp() {
-            window.addEventListener('popstate', renderRoute);
-            renderRoute();
-        }
-
-        function navigateTo(path) {
-            history.pushState(null, "", path);
-            renderRoute();
-        }
-
-        function renderRoute() {
-            const path = window.location.pathname;
-            window.scrollTo(0, 0); 
-
-            if (path === "/") {
-                renderNewPaste();
-            } else if (path === "/archive") {
-                renderArchive();
-            } else if (path.startsWith("/p/")) {
-                const slug = path.replace("/p/", "");
-                if(slug) {
-                    renderPasteDetail(slug);
-                } else {
-                    renderNotFound();
-                }
-            } else {
-                renderNotFound();
-            }
-        }
-
-        function renderLayout(contentHTML) {
-            appDiv.innerHTML = `
-                ${renderHeader()}
-                ${contentHTML}
-            `;
-        }
-
-        function renderNotFound() {
-            const html = `
-                <main class="max-w-screen-xl mx-auto w-full p-4 md:p-6 lg:p-10 min-h-[calc(100vh-73px)] flex flex-col items-center justify-center text-center">
-                    <h1 class="text-4xl font-bold text-white mb-2">404</h1>
-                    <p class="text-muted mb-8">Halaman tidak ditemukan.</p>
-                    <button onclick="navigateTo('/')" class="bg-neon hover:bg-neon/90 text-dark font-bold py-2.5 px-6 rounded-lg text-sm">Kembali ke Beranda</button>
-                </main>
-            `;
-            renderLayout(html);
-        }
-
-        // ==========================================
-        // HALAMAN: NEW PASTE
-        // ==========================================
-        function renderNewPaste() {
-            const html = `
-                <div class="max-w-screen-2xl mx-auto w-full grid grid-cols-1 lg:grid-cols-[330px_1fr] min-h-[calc(100vh-73px)]">
-                    
-                    <!-- Sidebar Form -->
-                    <aside class="border-b lg:border-b-0 lg:border-r border-line p-4 md:p-6 lg:p-7 flex flex-col gap-6 order-2 lg:order-1 bg-dark">
-                        
-                        <!-- Placeholder Banner -->
-                        <div class="w-full bg-panel border border-dashed border-softline rounded-lg p-4 flex flex-col items-center justify-center text-center opacity-70 mb-2">
-                            <span class="text-[10px] font-bold text-muted uppercase tracking-widest mb-1">UPLOADERY</span>
-                            <span class="text-xs text-muted/80">YOUR AD HERE</span>
-                        </div>
-
-                        <div class="flex flex-col gap-4">
-                            <h2 class="text-lg font-bold text-white tracking-tight">Paste Settings</h2>
-                            
-                            <div class="space-y-4">
-                                <div class="space-y-1.5">
-                                    <label class="text-sm font-medium text-muted">Title</label>
-                                    <input type="text" id="paste-title" placeholder="Untitled Paste" class="w-full bg-panel border border-line focus:border-neon focus:ring-1 focus:ring-neon rounded-lg px-4 py-2.5 text-sm text-white outline-none transition-all">
-                                </div>
-
-                                <div class="space-y-1.5">
-                                    <label class="text-sm font-medium text-muted">Syntax Highlighting</label>
-                                    <div class="relative">
-                                        <select id="paste-syntax" class="w-full bg-panel border border-line focus:border-neon focus:ring-1 focus:ring-neon rounded-lg px-4 py-2.5 text-sm text-white outline-none appearance-none transition-all cursor-pointer">
-                                            <option value="text">No Syntax (Text)</option>
-                                            <option value="javascript">JavaScript</option>
-                                            <option value="html">HTML</option>
-                                            <option value="css">CSS</option>
-                                            <option value="json">JSON</option>
-                                            <option value="php">PHP</option>
-                                            <option value="sql">SQL</option>
-                                            <option value="java">Java</option>
-                                            <option value="python">Python</option>
-                                            <option value="markdown">Markdown</option>
-                                            <option value="bash">Bash</option>
-                                            <option value="typescript">TypeScript</option>
-                                            <option value="xml">XML</option>
-                                            <option value="cpp">C++</option>
-                                            <option value="go">Go</option>
-                                            <option value="rust">Rust</option>
-                                            <option value="ruby">Ruby</option>
-                                        </select>
-                                        <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-muted">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="space-y-1.5">
-                                    <label class="text-sm font-medium text-muted">Visibility</label>
-                                    <div class="relative">
-                                        <select id="paste-visibility" class="w-full bg-panel border border-line focus:border-neon focus:ring-1 focus:ring-neon rounded-lg px-4 py-2.5 text-sm text-white outline-none appearance-none transition-all cursor-pointer">
-                                            <option value="public">Public</option>
-                                            <option value="unlisted">Unlisted</option>
-                                            <option value="private">Private</option>
-                                        </select>
-                                        <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-muted">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Password Input Field (Hidden By Default) -->
-                                <div id="password-container" class="space-y-1.5 hidden">
-                                    <label class="text-sm font-medium text-muted">Password Private Paste</label>
-                                    <div class="relative">
-                                        <input type="password" id="paste-password" placeholder="Masukkan password untuk membuka paste ini" class="w-full bg-panel border border-line focus:border-neon focus:ring-1 focus:ring-neon rounded-lg px-4 py-2.5 text-sm text-white outline-none transition-all pr-10">
-                                        <button type="button" id="btn-toggle-password" class="absolute inset-y-0 right-0 flex items-center px-3 text-muted hover:text-white transition-colors" onclick="togglePasswordVisibility('paste-password', 'btn-toggle-password')">
-                                            <svg class="w-4 h-4 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                            <svg class="w-4 h-4 eye-slash-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="space-y-1.5">
-                                    <label class="text-sm font-medium text-muted">Expiration</label>
-                                    <div class="relative">
-                                        <select id="paste-expiration" class="w-full bg-panel border border-line focus:border-neon focus:ring-1 focus:ring-neon rounded-lg px-4 py-2.5 text-sm text-white outline-none appearance-none transition-all cursor-pointer">
-                                            <option value="never">No Expiration</option>
-                                            <option value="10m">10 Minutes</option>
-                                            <option value="1h">1 Hour</option>
-                                            <option value="1d">1 Day</option>
-                                            <option value="7d">7 Days</option>
-                                            <option value="30d">30 Days</option>
-                                        </select>
-                                        <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-muted">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-col gap-3 mt-4">
-                                <button id="btn-save-template" class="w-full bg-panel hover:bg-line border border-line text-white font-medium py-3 px-4 rounded-lg transition-colors text-sm flex items-center justify-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
-                                    Save As Template
-                                </button>
-                                <button id="btn-submit" class="w-full bg-neon hover:bg-neon/90 text-dark font-bold py-3 px-4 rounded-lg transition-colors text-sm shadow-[0_0_15px_rgba(24,224,111,0.2)] flex items-center justify-center gap-2">
-                                    Create Paste
-                                </button>
-                            </div>
-                        </div>
-                    </aside>
-
-                    <!-- Main Editor Area -->
-                    <main class="p-4 md:p-6 lg:p-10 min-w-0 order-1 lg:order-2 flex flex-col h-full">
-                        <div class="bg-panel rounded-xl border border-line flex flex-col shadow-lg flex-1 overflow-hidden h-full">
-                            <div class="flex items-center justify-between px-4 py-3 border-b border-line bg-panel2">
-                                <div class="flex items-center gap-2">
-                                    <div class="flex gap-1.5">
-                                        <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
-                                        <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-                                        <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
-                                    </div>
-                                    <span class="ml-2 text-sm font-semibold text-muted">Paste text</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <span id="char-count" class="text-xs text-muted/80 font-mono">0 chars</span>
-                                    <div class="w-px h-4 bg-softline"></div>
-                                    <button id="btn-copy-editor" class="text-xs text-muted hover:text-white transition-colors flex items-center gap-1" title="Copy All">
-                                        Copy All
-                                    </button>
-                                    <button id="btn-clear-editor" class="text-xs text-muted hover:text-red-400 transition-colors flex items-center gap-1" title="Clear Editor">
-                                        Clear Editor
-                                    </button>
-                                </div>
-                            </div>
-
-                            <textarea id="paste-content" class="w-full flex-1 min-h-[360px] lg:min-h-[560px] resize-y bg-dark text-white p-4 md:p-5 font-mono text-sm leading-relaxed outline-none placeholder:text-muted/30 focus:bg-[#151515] transition-colors" placeholder="Write or paste your code here..." spellcheck="false"></textarea>
-
-                            <div class="px-4 py-2 border-t border-line bg-panel2 flex justify-center text-xs text-muted/70">
-                                Drop one file here or click to upload to Uploadery
-                            </div>
-                        </div>
-                    </main>
-                </div>
-            `;
-
-            renderLayout(html);
-
-            // Bind Events
-            const contentEl = document.getElementById('paste-content');
-            const charCountEl = document.getElementById('char-count');
-            const submitBtn = document.getElementById('btn-submit');
-            const btnTemplate = document.getElementById('btn-save-template');
-            const visibilityEl = document.getElementById('paste-visibility');
-
-            visibilityEl.addEventListener('change', togglePrivatePasswordField);
-
-            contentEl.addEventListener('input', () => {
-                charCountEl.textContent = `${contentEl.value.length} chars`;
-            });
-
-            document.getElementById('btn-clear-editor').addEventListener('click', () => {
-                contentEl.value = "";
-                charCountEl.textContent = `0 chars`;
-                contentEl.focus();
-            });
-
-            document.getElementById('btn-copy-editor').addEventListener('click', () => {
-                if (!contentEl.value) {
-                    showToast("Editor kosong", "info");
-                    return;
-                }
-                copyText(contentEl.value).then(() => showToast("Teks disalin ke clipboard"));
-            });
-
-            btnTemplate.addEventListener('click', () => {
-                showToast("Fitur template belum tersedia", "info");
-            });
-
-            const submitHTML = submitBtn.innerHTML;
-            const handleSubmit = () => createPaste(submitHTML);
-
-            submitBtn.addEventListener('click', handleSubmit);
-
-            // Hotkey Ctrl + Enter
-            contentEl.addEventListener('keydown', (e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                    e.preventDefault();
-                    handleSubmit();
-                }
-            });
-
-            contentEl.focus();
-        }
-
-        async function createPaste(originalBtnText) {
-            const titleEl = document.getElementById('paste-title');
-            const syntaxEl = document.getElementById('paste-syntax');
-            const visibilityEl = document.getElementById('paste-visibility');
-            const expirationEl = document.getElementById('paste-expiration');
-            const contentEl = document.getElementById('paste-content');
-            const passwordEl = document.getElementById('paste-password');
-            const submitBtn = document.getElementById('btn-submit');
-
-            const content = contentEl.value.trim();
-            const visibility = visibilityEl.value;
-            const password = passwordEl.value.trim();
-
-            if (!content) {
-                showToast("Paste text tidak boleh kosong", "error");
-                contentEl.focus();
-                return;
-            }
-
-            if (visibility === 'private' && !password) {
-                showToast("Password wajib diisi untuk paste private", "error");
-                passwordEl.focus();
-                return;
-            }
-
-            const payload = {
-                title: titleEl.value.trim() || "Untitled Paste",
-                content: content,
-                syntax: syntaxEl.value,
-                visibility: visibility,
-                expiration: expirationEl.value
-            };
-
-            if (visibility === 'private') {
-                payload.password = password;
-            }
-
-            setLoading(submitBtn, true, originalBtnText);
-
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/pastes`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await res.json();
-
-                if (res.ok && result.success) {
-                    contentEl.value = "";
-                    document.getElementById('char-count').textContent = "0 chars";
-                    // Pass isPrivate to show the extra notice
-                    showSuccessModal(result.data, visibility === 'private');
-                } else {
-                    throw new Error(result.message || "Gagal membuat paste");
-                }
-            } catch (error) {
-                showToast(error.message, "error");
-            } finally {
-                setLoading(submitBtn, false, originalBtnText);
-            }
-        }
-
-        // ==========================================
-        // HALAMAN: PASTE ARCHIVE
-        // ==========================================
-        let archiveDataCache = [];
-
-        async function renderArchive(page = 1) {
-            const html = `
-                <main class="max-w-screen-xl mx-auto w-full p-4 md:p-6 lg:p-10 min-h-[calc(100vh-73px)] flex flex-col">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                        <div>
-                            <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight mb-1">Paste Archive</h1>
-                            <p class="text-sm text-muted">Kumpulan paste publik terbaru dari komunitas.</p>
-                        </div>
-                        <div class="relative w-full md:w-64">
-                            <input type="text" id="archive-search" placeholder="Cari judul..." class="w-full bg-panel border border-line focus:border-neon focus:ring-1 focus:ring-neon rounded-lg pl-10 pr-4 py-2.5 text-sm text-white outline-none transition-all">
-                            <svg class="w-4 h-4 text-muted absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        </div>
-                    </div>
-
-                    <div id="archive-list" class="flex-1 flex flex-col gap-3 min-w-0">
-                        <!-- Skeleton Loaders -->
-                        ${Array(5).fill(0).map(() => `
-                            <div class="bg-panel border border-line rounded-xl p-4 md:p-5 flex flex-col md:flex-row md:items-center gap-4 animate-pulse">
-                                <div class="flex-1 space-y-3">
-                                    <div class="h-5 bg-line rounded w-1/3"></div>
-                                    <div class="flex gap-2">
-                                        <div class="h-4 bg-line rounded w-16"></div>
-                                        <div class="h-4 bg-line rounded w-24"></div>
-                                    </div>
-                                </div>
-                                <div class="h-10 bg-line rounded w-full md:w-24"></div>
-                            </div>
-                        `).join('')}
-                    </div>
-
-                    <div id="archive-pagination" class="mt-8 flex items-center justify-center gap-4 hidden">
-                        <button id="btn-prev" class="bg-panel hover:bg-line border border-line text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
-                        <span id="page-info" class="text-sm font-medium text-muted">Page 1 of 1</span>
-                        <button id="btn-next" class="bg-panel hover:bg-line border border-line text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
-                    </div>
-                </main>
-            `;
-
-            renderLayout(html);
-            await fetchArchive(page);
-        }
-
-        async function fetchArchive(page) {
-            const listEl = document.getElementById('archive-list');
-            const paginationEl = document.getElementById('archive-pagination');
-            const searchInput = document.getElementById('archive-search');
-            
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/pastes?page=${page}&limit=50`);
-                const result = await res.json();
-
-                if (res.ok && result.success) {
-                    const data = result.data;
-                    const pagination = result.pagination;
-                    archiveDataCache = data; 
-                    
-                    renderArchiveList(data);
-
-                    searchInput.addEventListener('input', (e) => {
-                        const query = e.target.value.toLowerCase();
-                        const filtered = archiveDataCache.filter(item => 
-                            (item.title || "Untitled Paste").toLowerCase().includes(query)
-                        );
-                        renderArchiveList(filtered, query !== "");
-                    });
-
-                    // Pagination Control
-                    if (pagination && pagination.total_pages > 1) {
-                        paginationEl.classList.remove('hidden');
-                        
-                        const btnPrev = document.getElementById('btn-prev');
-                        const btnNext = document.getElementById('btn-next');
-                        const pageInfo = document.getElementById('page-info');
-
-                        pageInfo.textContent = `Page ${pagination.page} of ${pagination.total_pages}`;
-                        
-                        btnPrev.disabled = pagination.page <= 1;
-                        btnNext.disabled = pagination.page >= pagination.total_pages;
-
-                        const newBtnPrev = btnPrev.cloneNode(true);
-                        const newBtnNext = btnNext.cloneNode(true);
-                        btnPrev.replaceWith(newBtnPrev);
-                        btnNext.replaceWith(newBtnNext);
-
-                        newBtnPrev.addEventListener('click', () => { window.scrollTo(0,0); renderArchive(pagination.page - 1); });
-                        newBtnNext.addEventListener('click', () => { window.scrollTo(0,0); renderArchive(pagination.page + 1); });
-                    } else {
-                        paginationEl.classList.add('hidden');
-                    }
-                } else {
-                    throw new Error(result.message || "Gagal mengambil data");
-                }
-            } catch (error) {
-                listEl.innerHTML = `
-                    <div class="bg-panel border border-red-500/30 rounded-xl p-8 text-center">
-                        <p class="text-sm text-muted">${error.message}</p>
-                        <button onclick="renderArchive(1)" class="mt-4 bg-line hover:bg-softline text-white font-medium py-2 px-6 rounded-lg text-sm">Coba Lagi</button>
-                    </div>
-                `;
-            }
-        }
-
-        function renderArchiveList(data, isSearching = false) {
-            const listEl = document.getElementById('archive-list');
-            
-            if (!data || data.length === 0) {
-                listEl.innerHTML = `
-                    <div class="bg-panel border border-line rounded-xl p-10 text-center flex flex-col items-center justify-center">
-                        <h3 class="text-lg font-bold text-white mb-1">Belum ada paste public</h3>
-                        <p class="text-sm text-muted">Kosong.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            listEl.innerHTML = data.map(paste => {
-                const isPrivate = paste.visibility === 'private';
-                const buttonHtml = isPrivate 
-                    ? `<button onclick="openArchivePrivateUnlockModal('${paste.slug}')" class="w-full md:w-auto bg-panel2 border border-line hover:border-neon text-white font-medium py-2 px-5 rounded-lg transition-colors text-sm text-center shrink-0 flex items-center justify-center gap-2">
-                           <svg class="w-4 h-4 text-neon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                           Unlock
-                       </button>`
-                    : `<a href="/p/${paste.slug}" onclick="event.preventDefault(); navigateTo('/p/${paste.slug}')" class="w-full md:w-auto bg-line hover:bg-softline text-white font-medium py-2 px-5 rounded-lg transition-colors text-sm text-center shrink-0">
-                           View
-                       </a>`;
-
-                const privateBadge = isPrivate 
-                    ? `<span class="inline-flex items-center gap-1 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ml-2">Private</span>`
-                    : '';
-
-                return `
-                    <div class="bg-panel hover:bg-panel2 border border-line rounded-xl p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors group min-w-0">
-                        <div class="flex-1 min-w-0">
-                            <h3 class="text-base font-bold text-white mb-2 truncate group-hover:text-neon transition-colors flex items-center">
-                                ${escapeHtml(paste.title || 'Untitled Paste')}
-                                ${privateBadge}
-                            </h3>
-                            <div class="flex flex-wrap items-center gap-3 text-xs text-muted">
-                                <span class="inline-flex items-center gap-1 bg-line px-2 py-1 rounded text-white/90">
-                                    ${escapeHtml(paste.syntax || 'text')}
-                                </span>
-                                <span class="flex items-center gap-1" title="Views">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                    ${paste.views || 0}
-                                </span>
-                                <span class="flex items-center gap-1" title="Created At">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    ${formatDate(paste.created_at)}
-                                </span>
-                            </div>
-                        </div>
-                        ${buttonHtml}
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // ==========================================
-        // HALAMAN: PASTE DETAIL & UNLOCK
-        // ==========================================
+        // === VIEW: PASTE DETAIL ===
         async function renderPasteDetail(slug) {
-            const html = `
-                <main class="max-w-screen-xl mx-auto w-full p-4 md:p-6 lg:p-10 min-h-[calc(100vh-73px)] flex flex-col gap-6">
-                    <div id="detail-header" class="flex flex-col md:flex-row md:items-start justify-between gap-4 animate-pulse">
-                        <div class="space-y-3 flex-1">
-                            <div class="h-8 bg-panel border border-line rounded w-3/4 md:w-1/2"></div>
-                            <div class="h-5 bg-panel border border-line rounded w-full md:w-1/3"></div>
-                        </div>
-                    </div>
-                    
-                    <div id="detail-content" class="bg-panel border border-line rounded-xl overflow-hidden flex-1 animate-pulse min-h-[400px]">
-                    </div>
-                </main>
-            `;
-            
-            renderLayout(html);
+            const main = document.getElementById('main-content');
+            main.innerHTML = `<div class="flex justify-center py-20"><div class="loader w-10 h-10 border-4 border-t-neon"></div></div>`;
 
-            // Cek apakah paste ini baru saja di-unlock dari halaman archive
+            // Cek apakah sudah di-unlock dari archive
             if (window.__unlockedPaste && window.__unlockedPaste.slug === slug) {
-                const paste = window.__unlockedPaste;
-                window.__unlockedPaste = null; // Clear setetlah digunakan
-                renderPasteContent(paste, slug);
+                const pasteData = window.__unlockedPaste;
+                window.__unlockedPaste = null; // consume
+                renderPasteContent(pasteData, main);
                 return;
             }
 
-            await fetchPaste(slug);
-        }
-
-        async function fetchPaste(slug) {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/pastes/${slug}`);
-                const result = await res.json();
+                const data = await res.json();
+                
+                syncServerTime(data.server_time);
 
-                if (result.success) {
-                    renderPasteContent(result.data, slug);
-                } else if (!result.success && result.private) {
-                    renderPrivateUnlock(result.data, slug);
+                if (data.success) {
+                    renderPasteContent(data.data, main);
+                } else if (data.private) {
+                    renderPrivateUnlock(data.data, slug, main);
+                } else if (data.expired) {
+                    renderExpiredPage(main);
                 } else {
-                    throw new Error(result.message || "Paste tidak ditemukan");
+                    renderNotFound(main);
                 }
-            } catch (error) {
-                const mainEl = document.querySelector('main');
-                mainEl.innerHTML = `
-                    <div class="flex-1 flex flex-col items-center justify-center text-center p-8 mt-10">
-                        <h1 class="text-2xl font-bold text-white mb-2">Paste Tidak Ditemukan</h1>
-                        <p class="text-muted mb-8">${error.message}</p>
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <button onclick="navigateTo('/')" class="bg-neon hover:bg-neon/90 text-dark font-bold py-2.5 px-6 rounded-lg text-sm">Buat Paste Baru</button>
-                            <button onclick="navigateTo('/archive')" class="bg-panel hover:bg-line border border-line text-white font-medium py-2.5 px-6 rounded-lg text-sm">Lihat Archive</button>
-                        </div>
+            } catch(e) {
+                main.innerHTML = `<div class="text-center py-20 text-red-400">Failed to load paste. Check connection.</div>`;
+            }
+        }
+
+        function renderPasteContent(paste, container) {
+            const isExpired = paste.expires_at && (paste.expires_at - getCurrentServerTime() <= 0);
+            if (isExpired) {
+                renderExpiredPage(container);
+                return;
+            }
+
+            const isPrivate = paste.visibility === 'private';
+            let visibilityBadge = isPrivate ? 
+                    `<span class="bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded font-bold flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Private</span>` : 
+                    `<span class="bg-neon/10 text-neon border border-neon/20 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded font-bold flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> ${paste.visibility}</span>`;
+
+            let timerHtml = '';
+            if (paste.expires_at) {
+                timerHtml = `
+                    <div class="flex items-center gap-2 text-sm bg-panel border border-line px-3 py-1.5 rounded text-muted">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Expires in: <span id="detail-timer-${paste.slug}" class="font-mono text-neon font-medium ml-1">Loading...</span>
                     </div>
                 `;
             }
-        }
 
-        function renderPasteContent(paste, slug) {
-            const mainEl = document.querySelector('main');
-            const syntax = paste.syntax || 'text';
-            const highlightClass = syntax === 'text' ? 'language-plaintext' : `language-${syntax}`;
-            
-            const rawUrl = paste.raw_url || `${API_BASE_URL}/api/raw/${slug}`;
-            
-            mainEl.innerHTML = `
-                <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-2">
-                    <div class="flex-1 min-w-0">
-                        <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight mb-3 break-words leading-tight">
-                            ${escapeHtml(paste.title || 'Untitled Paste')}
-                        </h1>
-                        
-                        <div class="flex flex-wrap items-center gap-4 text-sm text-muted">
-                            <span class="inline-flex items-center gap-1.5 bg-panel border border-line px-2.5 py-1.5 rounded-md text-white/90">
-                                <span class="capitalize font-medium">${syntax}</span>
-                            </span>
-                            <span class="flex items-center gap-1.5">
-                                ${paste.views || 0} Views
-                            </span>
-                            <span class="flex items-center gap-1.5">
-                                ${formatDate(paste.created_at)}
-                            </span>
-                            <span class="flex items-center gap-1.5 capitalize">
-                                ${paste.visibility}
-                            </span>
-                        </div>
-                    </div>
+            container.innerHTML = `
+                <div class="p-0 md:p-6 lg:p-8 max-w-5xl mx-auto w-full">
                     
-                    <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
-                        <button id="btn-copy-raw" class="bg-panel hover:bg-line border border-line text-white font-medium py-2.5 px-4 rounded-lg transition-colors text-sm">
-                            Copy Raw
-                        </button>
-                        <button onclick="window.open('${rawUrl}', '_blank')" class="bg-panel hover:bg-line border border-line text-white font-medium py-2.5 px-4 rounded-lg transition-colors text-sm">
-                            Open Raw
-                        </button>
-                        <button onclick="navigateTo('/')" class="bg-neon hover:bg-neon/90 text-dark font-bold py-2.5 px-4 rounded-lg transition-colors text-sm text-center">
-                            New Paste
-                        </button>
+                    <!-- Header -->
+                    <div class="bg-panel md:rounded-t-xl border-b md:border border-line p-4 md:p-6 mb-0 md:mb-6 flex flex-col md:flex-row md:items-start justify-between gap-4">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-3 mb-2 flex-wrap">
+                                <h1 class="text-xl md:text-2xl font-bold text-white truncate" title="${escapeHtml(paste.title || 'Untitled Paste')}">${escapeHtml(paste.title || 'Untitled Paste')}</h1>
+                                ${visibilityBadge}
+                            </div>
+                            <div class="flex items-center gap-4 text-xs md:text-sm text-muted flex-wrap">
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                                    <span class="uppercase">${paste.syntax}</span>
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    ${paste.views} views
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    ${formatDate(paste.created_at || getCurrentServerTime())}
+                                </span>
+                            </div>
+                        </div>
+                        ${timerHtml}
                     </div>
-                </div>
 
-                <!-- Code Area -->
-                <div class="bg-[#0d1117] border border-line rounded-xl shadow-xl flex-1 flex flex-col min-w-0 mt-4 overflow-hidden">
-                    <div class="flex items-center justify-between px-4 py-2.5 border-b border-line/50 bg-[#161b22]">
-                        <div class="flex gap-1.5">
-                            <div class="w-3 h-3 rounded-full bg-line"></div>
-                            <div class="w-3 h-3 rounded-full bg-line"></div>
-                            <div class="w-3 h-3 rounded-full bg-line"></div>
+                    <!-- Code Area -->
+                    <div class="bg-panel2 md:rounded-xl border-y md:border border-line overflow-hidden relative group">
+                        <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                            <button id="btn-copy-raw" class="bg-panel border border-line text-muted hover:text-white hover:border-softline px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 transition">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                Copy Raw
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto p-4 md:p-6 text-sm">
+                            <pre><code id="paste-code-block" class="language-${paste.syntax} rounded-lg"></code></pre>
                         </div>
                     </div>
-                    <div class="relative flex-1 overflow-x-auto">
-                        <pre class="m-0 p-4 md:p-6 text-[13px] md:text-sm leading-relaxed"><code id="code-block" class="!bg-transparent ${highlightClass}"></code></pre>
+
+                    <!-- Actions Bottom -->
+                    <div class="mt-6 px-4 md:px-0 flex flex-wrap gap-3 pb-8">
+                        <button onclick="navigateTo('/')" class="px-4 py-2 bg-panel border border-line hover:bg-line text-white rounded text-sm transition">
+                            Create New Paste
+                        </button>
+                        <button onclick="navigateTo('/archive')" class="px-4 py-2 bg-panel border border-line hover:bg-line text-white rounded text-sm transition">
+                            Back to Archive
+                        </button>
                     </div>
-                </div>
-                
-                <div class="mt-2 text-center flex flex-col sm:flex-row items-center justify-center gap-4">
-                     <button onclick="navigateTo('/archive')" class="inline-flex items-center gap-2 text-sm text-muted hover:text-white transition-colors">
-                        Back to Archive
-                     </button>
-                     <button onclick="navigateTo('/')" class="inline-flex items-center gap-2 text-sm text-muted hover:text-white transition-colors sm:hidden">
-                        Back to New Paste
-                     </button>
+
                 </div>
             `;
 
-            // MENCEGAH XSS: Masukkan content dengan .textContent bukan .innerHTML!
-            const codeBlock = document.getElementById('code-block');
-            codeBlock.textContent = paste.content || "";
+            // Security: Use textContent to prevent XSS execution
+            const codeBlock = document.getElementById('paste-code-block');
+            codeBlock.textContent = paste.content;
+            hljs.highlightElement(codeBlock);
 
-            // Terapkan Highlight.js
-            if (typeof hljs !== 'undefined') {
-                try {
-                    if (syntax !== 'text' && syntax !== 'plaintext') {
-                       hljs.highlightElement(codeBlock);
-                    }
-                } catch (e) {
-                    console.error("Highlight.js error:", e);
-                }
-            }
-
-            document.getElementById('btn-copy-raw').addEventListener('click', () => {
-                copyText(paste.content || "").then(() => showToast("Raw text disalin ke clipboard"));
+            // Setup events
+            document.getElementById('btn-copy-raw').addEventListener('click', function() {
+                copyText(paste.content, this);
             });
+
+            if (paste.expires_at) {
+                startCountdown(`detail-timer-${paste.slug}`, paste.expires_at, () => {
+                    renderExpiredPage(container);
+                });
+            }
         }
 
-        // ==========================================
-        // INISIALISASI APLIKASI
-        // ==========================================
-        initApp();
+        function renderPrivateUnlock(meta, slug, container) {
+            container.innerHTML = `
+                <div class="flex items-center justify-center py-20 px-4">
+                    <div class="bg-panel border border-line rounded-xl p-6 md:p-8 w-full max-w-md shadow-2xl">
+                        <div class="w-16 h-16 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        </div>
+                        <h2 class="text-2xl font-bold text-center text-white mb-2">Private Paste</h2>
+                        <p class="text-center text-muted mb-8">This paste is protected. Please enter the password to view its contents.</p>
+                        
+                        <div class="space-y-4 mb-6">
+                            <div>
+                                <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wider">Password</label>
+                                <div class="relative">
+                                    <input type="password" id="page-unlock-password" placeholder="Enter password..." class="w-full px-4 py-3 bg-panel2 border border-line rounded text-white focus:border-neon pr-10" onkeypress="if(event.key === 'Enter') verifyPageUnlock('${slug}')">
+                                    <button type="button" onclick="togglePasswordVisibility('page-unlock-password', 'eye-icon-page')" class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted hover:text-white">
+                                        <svg id="eye-icon-page" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="btn-page-unlock" onclick="verifyPageUnlock('${slug}')" class="w-full py-3 bg-neon text-dark font-bold rounded hover:bg-[#15c561] transition shadow-[0_0_15px_rgba(24,224,111,0.15)]">
+                            Unlock Paste
+                        </button>
+                        
+                        <div class="mt-6 text-center">
+                            <button onclick="navigateTo('/')" class="text-sm text-muted hover:text-white transition">← Back to Home</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => document.getElementById('page-unlock-password').focus(), 100);
+        }
+
+        async function verifyPageUnlock(slug) {
+            const pwdInput = document.getElementById('page-unlock-password');
+            const password = pwdInput.value;
+            if(!password) return showToast("Password wajib diisi!", "error");
+
+            setLoading('btn-page-unlock', true, "Unlock Paste");
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/pastes/${slug}/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    const main = document.getElementById('main-content');
+                    renderPasteContent(data.data, main);
+                } else {
+                    showToast(data.message || "Password salah", "error");
+                    pwdInput.value = '';
+                    pwdInput.focus();
+                }
+            } catch(e) {
+                showToast("Terjadi kesalahan jaringan", "error");
+            } finally {
+                setLoading('btn-page-unlock', false, "Unlock Paste");
+            }
+        }
+
+        function renderExpiredPage(container) {
+            container.innerHTML = `
+                <div class="flex items-center justify-center py-20 px-4">
+                    <div class="bg-panel border border-line rounded-xl p-8 max-w-md w-full text-center">
+                        <div class="w-20 h-20 rounded-full bg-line flex items-center justify-center mx-auto mb-6 text-muted">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white mb-2">Paste Expired</h2>
+                        <p class="text-muted mb-8">Paste ini sudah melewati batas waktu dan tidak bisa dibuka lagi.</p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                            <button onclick="navigateTo('/')" class="px-6 py-2.5 bg-neon text-dark font-medium rounded hover:bg-[#15c561] transition">New Paste</button>
+                            <button onclick="navigateTo('/archive')" class="px-6 py-2.5 bg-panel2 border border-line text-white font-medium rounded hover:bg-line transition">Archive</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderNotFound(container) {
+            container.innerHTML = `
+                <div class="flex items-center justify-center py-20 px-4">
+                    <div class="text-center">
+                        <h1 class="text-9xl font-black text-line mb-4">404</h1>
+                        <h2 class="text-2xl font-bold text-white mb-2">Page Not Found</h2>
+                        <p class="text-muted mb-8">The paste or page you are looking for does not exist.</p>
+                        <button onclick="navigateTo('/')" class="px-6 py-2.5 bg-neon text-dark font-medium rounded hover:bg-[#15c561] transition">Go Home</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // === INITIALIZE ===
+        function initApp() {
+            // First time sync server time (approximate, gets refined on fetch)
+            syncServerTime(Date.now());
+            renderRoute();
+        }
+
+        // Start the app
+        document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>
