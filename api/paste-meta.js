@@ -48,21 +48,34 @@ export default async function handler(req, res) {
     const safeTitle = escapeHtml(title);
     const safeDescription = escapeHtml(description);
 
-    // Meta tag lengkap untuk visual share (WhatsApp, Telegram, Twitter, dsb.)
-    const metaTags = `
-        <title>${safeTitle}</title>
-        <meta name="description" content="${safeDescription}">
-        <meta property="og:title" content="${safeTitle}">
-        <meta property="og:description" content="${safeDescription}">
-        <meta property="og:type" content="article">
-        <meta property="og:url" content="${FRONTEND_URL}/p/${slug}">
-        <meta property="og:site_name" content="Warung Mezur Paste">
-        <meta name="twitter:card" content="summary">
-        <meta name="twitter:title" content="${safeTitle}">
-        <meta name="twitter:description" content="${safeDescription}">
-        <meta name="theme-color" content="#38bdf8">
-        <link rel="canonical" href="${FRONTEND_URL}/p/${slug}">
-    `;
+    const ogImage = "https://cdn.prod.website-files.com/60ef088dd8fef99352abb434/647cee089d14eeafc9af9996_Meta%20Tags%20For%20SEO%20-%20A%20Complete%20Guide%20For%20Beginners-100-p-1080.webp";
+
+// Meta tag lengkap untuk visual share WhatsApp, Telegram, Twitter, Facebook, dsb.
+const metaTags = `
+    <title>${safeTitle}</title>
+    <meta name="description" content="${safeDescription}">
+    
+    <meta property="og:title" content="${safeTitle}">
+    <meta property="og:description" content="${safeDescription}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="${FRONTEND_URL}/p/${slug}">
+    <meta property="og:site_name" content="Warung Mezur Paste">
+    
+    <meta property="og:image" content="${ogImage}">
+    <meta property="og:image:secure_url" content="${ogImage}">
+    <meta property="og:image:type" content="image/webp">
+    <meta property="og:image:width" content="1080">
+    <meta property="og:image:height" content="567">
+    <meta property="og:image:alt" content="${safeTitle}">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${safeTitle}">
+    <meta name="twitter:description" content="${safeDescription}">
+    <meta name="twitter:image" content="${ogImage}">
+    
+    <meta name="theme-color" content="#38bdf8">
+    <link rel="canonical" href="${FRONTEND_URL}/p/${slug}">
+`;
 
     // Ganti tag default <title> pada index.html dengan kumpulan dynamic meta tags kita
     html = html.replace(/<title>[^<]*<\/title>/i, metaTags);
