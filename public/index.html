@@ -188,6 +188,7 @@
         let serverTimeOffset = 0;
         let activeIntervals = {};
         window.__unlockedPaste = null;
+        window.__archivePastes = {}; // Menyimpan referensi paste di halaman archive untuk keamanan pemanggilan parameter
 
         // === TIME & COUNTDOWN UTILS ===
         function syncServerTime(serverTime) {
@@ -209,41 +210,43 @@
             }).format(date).replace(' pukul', ',');
         }
 
-        function formatDuration(ms) {
+        function formatCountdown(expiresAt) {
+            const now = getCurrentServerTime();
+            const ms = expiresAt - now;
             if (ms <= 0) return "Expired";
+            
             const totalSeconds = Math.floor(ms / 1000);
             const days = Math.floor(totalSeconds / 86400);
             const hours = Math.floor((totalSeconds % 86400) / 3600);
             const minutes = Math.floor((totalSeconds % 3600) / 60);
             const seconds = totalSeconds % 60;
 
-            if (days > 0) return `${days}d ${hours}h`;
-            if (hours > 0) return `${hours}h ${minutes}m`;
-            if (minutes > 0) return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            return `${seconds}s`;
+            if (days > 0) return `Expired in ${days} hari ${hours} jam`;
+            if (hours > 0) return `Expired in ${hours} jam ${minutes} menit`;
+            if (minutes > 0) return `Expired in ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            return `Expired in ${seconds} detik`;
         }
 
-        function startCountdown(elementId, expiresAt, onExpired = null) {
+        function startCountdown(element, expiresAt, onExpired = null) {
             if (!expiresAt) return;
-            const element = document.getElementById(elementId);
-            if (!element) return;
+            const el = typeof element === 'string' ? document.getElementById(element) : element;
+            if (!el) return;
+            const id = el.id || Math.random().toString(36).substring(2, 9);
+            if (!el.id) el.id = id;
 
             const update = () => {
-                const now = getCurrentServerTime();
-                const diff = expiresAt - now;
-
-                if (diff <= 0) {
-                    element.textContent = "Expired";
-                    clearInterval(activeIntervals[elementId]);
-                    delete activeIntervals[elementId];
+                const formatted = formatCountdown(expiresAt);
+                el.textContent = formatted;
+                
+                if (formatted === "Expired") {
+                    clearInterval(activeIntervals[id]);
+                    delete activeIntervals[id];
                     if (onExpired) onExpired();
-                } else {
-                    element.textContent = formatDuration(diff);
                 }
             };
 
             update();
-            activeIntervals[elementId] = setInterval(update, 1000);
+            activeIntervals[id] = setInterval(update, 1000);
         }
 
         function clearAllCountdowns() {
@@ -469,7 +472,7 @@
                                 <div id="password-wrapper" class="hidden">
                                     <label class="block text-xs font-semibold text-slate-300 mb-2 tracking-wide">PASSWORD</label>
                                     <div class="relative">
-                                        <input type="password" id="p-password" placeholder="Min 4 characters" class="glass-input w-full px-4 py-2.5 rounded-xl text-sm pr-10">
+                                        <input type="password" id="p-password" placeholder="Masukkan password private" class="glass-input w-full px-4 py-2.5 rounded-xl text-sm pr-10">
                                         <button type="button" onclick="togglePasswordVisibility('p-password', 'eye-icon-new')" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-white transition-colors">
                                             <svg id="eye-icon-new" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                         </button>
@@ -553,7 +556,15 @@
                 const password = document.getElementById('p-password').value;
 
                 if (!content) { return showToast("Content cannot be empty", "error"); }
-                if (visibility === 'private' && password.length < 4) { return showToast("Password must be at least 4 characters", "error"); }
+                
+                if (visibility === 'private') {
+                    if (!password) {
+                        return showToast("Password wajib diisi untuk paste private", "error");
+                    }
+                    if (password.length < 4) {
+                        return showToast("Password minimal 4 karakter", "error");
+                    }
+                }
 
                 setLoading('btn-submit-paste', true, "Create Paste");
 
@@ -584,7 +595,7 @@
                 warningHtml = `
                     <div class="bg-rose-500/10 border border-rose-500/20 text-rose-200 text-sm p-4 rounded-xl mb-6 flex gap-3 items-start shadow-inner">
                         <svg class="w-5 h-5 shrink-0 mt-0.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                        <p class="leading-relaxed">This paste is private. <strong>Save your password</strong>, it's required to unlock this paste later.</p>
+                        <p class="leading-relaxed">Paste ini private. Simpan password kamu, karena dibutuhkan untuk membuka paste.</p>
                     </div>
                 `;
             }
@@ -695,6 +706,9 @@
                 const isPrivate = paste.visibility === 'private' || paste.is_private;
                 const isExpired = paste.expires_at && (paste.expires_at - getCurrentServerTime() <= 0);
                 
+                // Daftarkan data ke global state lookup
+                window.__archivePastes[paste.slug] = paste;
+
                 const card = document.createElement('div');
                 card.className = "glass-panel rounded-2xl p-6 flex flex-col h-full relative group transition-all duration-300 hover:border-sky-400/30 hover:shadow-sky-500/10 hover:-translate-y-1";
                 
@@ -709,14 +723,14 @@
                         <span id="card-timer-${paste.slug}" class="font-mono font-medium ${isExpired ? 'text-rose-400' : 'text-emerald-400'}">--:--</span>
                     </div>`;
                 } else {
-                    timeInfo = `<div class="mt-auto pt-4"></div>`; // filler
+                    timeInfo = `<div class="mt-auto pt-4"></div>`;
                 }
 
                 let actionButton = '';
                 if (isExpired) {
                      actionButton = `<button disabled class="w-full mt-4 py-2.5 bg-black/30 border border-white/5 text-slate-500 rounded-xl text-sm font-semibold cursor-not-allowed">Expired</button>`;
                 } else if (isPrivate) {
-                     actionButton = `<button onclick='openArchivePrivateModal(${JSON.stringify(paste).replace(/'/g, "&apos;")})' class="w-full mt-4 py-2.5 btn-glass text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2">Unlock Paste</button>`;
+                     actionButton = `<button onclick="openArchivePrivateModal('${paste.slug}')" class="w-full mt-4 py-2.5 btn-glass text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2">Unlock Paste</button>`;
                 } else {
                      actionButton = `<button onclick="navigateTo('/p/${paste.slug}')" class="w-full mt-4 py-2.5 bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/30 text-sky-200 rounded-xl text-sm font-semibold transition-colors">View Paste</button>`;
                 }
@@ -752,14 +766,17 @@
             });
         }
 
-        function openArchivePrivateModal(paste) {
+        function openArchivePrivateModal(slug) {
+            const paste = window.__archivePastes[slug];
+            if (!paste) return;
+
             showModal(`
                 <div>
                     <div class="mb-8">
                         <div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mb-4 border border-rose-500/30">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                         </div>
-                        <h3 class="text-2xl font-bold tracking-tight text-white mb-2">Protected Paste</h3>
+                        <h3 class="text-2xl font-bold tracking-tight text-white mb-2">Paste Private</h3>
                         <p class="text-sm text-slate-400">"${escapeHtml(paste.title || 'Untitled')}" requires a password to view.</p>
                     </div>
                     
@@ -784,7 +801,7 @@
         async function verifyArchiveUnlock(slug) {
             const pwdInput = document.getElementById('modal-unlock-password');
             const password = pwdInput.value;
-            if(!password) return showToast("Password is required", "error");
+            if(!password) return showToast("Password wajib diisi", "error");
 
             setLoading('btn-modal-unlock', true, "Unlock");
             try {
@@ -799,10 +816,10 @@
                     closeModal();
                     navigateTo(`/p/${slug}`);
                 } else {
-                    showToast(data.message || "Incorrect password", "error");
+                    showToast(data.message || "Password salah", "error");
                     pwdInput.value = ''; pwdInput.focus();
                 }
-            } catch(e) { showToast("Network error", "error"); } 
+            } catch(e) { showToast("Terjadi kesalahan jaringan", "error"); } 
             finally { setLoading('btn-modal-unlock', false, "Unlock"); }
         }
 
@@ -824,10 +841,15 @@
                 
                 syncServerTime(data.server_time);
 
-                if (data.success) { renderPasteContent(data.data, main); } 
-                else if (data.private) { renderPrivateUnlock(data.data, slug, main); } 
-                else if (data.expired) { renderExpiredPage(main); } 
-                else { renderNotFound(main); }
+                if (data.success) { 
+                    renderPasteContent(data.data, main); 
+                } else if (data.private) { 
+                    renderPrivateUnlock(data.data, slug, main); 
+                } else if (data.expired) { 
+                    renderExpiredPage(main); 
+                } else { 
+                    renderNotFound(main); 
+                }
             } catch(e) { main.innerHTML = `<div class="text-center py-20 text-rose-400 font-medium">Failed to load snippet. Check your connection.</div>`; }
         }
 
@@ -848,7 +870,7 @@
                 timerHtml = `
                     <div class="flex items-center gap-2 text-sm bg-black/30 px-4 py-2 rounded-xl text-slate-300 border border-white/10 shadow-inner">
                         <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Expires in: <span id="detail-timer-${paste.slug}" class="font-mono text-emerald-400 font-bold ml-1">--:--</span>
+                        <span id="detail-timer-${paste.slug}" class="font-mono text-emerald-400 font-bold ml-1">--:--</span>
                     </div>
                 `;
             }
@@ -897,6 +919,12 @@
                         </div>
                     </div>
 
+                    <!-- Navigation Bottom -->
+                    <div class="mt-6 flex flex-wrap gap-3 pb-8">
+                        <button onclick="navigateTo('/')" class="btn-glass px-5 py-2.5 rounded-xl text-sm font-semibold text-white">Create New Paste</button>
+                        <button onclick="navigateTo('/archive')" class="btn-glass px-5 py-2.5 rounded-xl text-sm font-semibold text-white">Back to Archive</button>
+                    </div>
+
                 </div>
             `;
 
@@ -924,8 +952,8 @@
                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                         </div>
                         
-                        <h2 class="text-3xl font-bold tracking-tight text-center text-white mb-3">Protected Paste</h2>
-                        <p class="text-slate-400 text-sm text-center mb-10 leading-relaxed">Enter the password to decrypt and view this snippet securely.</p>
+                        <h2 class="text-3xl font-bold tracking-tight text-center text-white mb-3">Paste Private</h2>
+                        <p class="text-slate-400 text-sm text-center mb-10 leading-relaxed">Masukkan password untuk membuka paste ini.</p>
                         
                         <div class="space-y-6 mb-8">
                             <div class="relative">
@@ -966,7 +994,7 @@
                     const main = document.getElementById('main-content');
                     renderPasteContent(data.data, main);
                 } else {
-                    showToast(data.message || "Incorrect password", "error");
+                    showToast(data.message || "Password salah", "error");
                     pwdInput.value = ''; pwdInput.focus();
                 }
             } catch(e) { showToast("Network error", "error"); } 
